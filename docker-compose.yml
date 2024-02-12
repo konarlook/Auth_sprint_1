@@ -1,0 +1,145 @@
+# docker-compose.yml
+version: '3'
+
+services:
+
+  db:
+    container_name: postgres
+    image: postgres:13.4
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    expose:
+      - "${DB_PORT}"
+    networks:
+     - network_project
+
+  backend:
+    container_name: backend
+    env_file: .env
+    volumes:
+      - static_data:/opt/app/static
+      - media_data:/opt/app/media
+    build: ./app
+    expose:
+      - "${BACKEND_DJANGO_PORT}"
+    networks:
+     - network_project
+    depends_on:
+      - db
+
+  fastapi:
+    container_name: fastapi
+    env_file: .env
+    restart: unless-stopped
+    build: fastapi
+    expose:
+      - "${BACKEND_FASTAPI_PORT}"
+    networks:
+     - network_project
+    depends_on:
+      - db
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    env_file: .env
+    restart: always
+    expose:
+      - "${REDIS_PORT}"
+    volumes:
+      - /redis/dаta:/root/redis
+      - /redis/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DATABASES: ${REDIS_DATABASES}
+    networks:
+     - network_project
+    depends_on:
+      - db
+      - backend
+      - fastapi
+      - elastic
+
+  redisvue:
+    image: rediscommander/redis-commander:latest
+    container_name: redisvue
+    environment:
+      - REDIS_HOSTS=local:redis:${REDIS_PORT}
+    ports:
+      - "${REDIS_VUE_PORT}:${REDIS_VUE_PORT}"
+    depends_on:
+      - redis
+    networks:
+     - network_project
+
+  nginx:
+    container_name: nginx
+    image: nginx:1.19.2
+    env_file: .env
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./data:/data/:ro
+      - static_data:/app/static
+      - media_data:/app/media
+    networks:
+     - network_project
+    depends_on:
+      - backend
+      - fastapi
+
+  elastic:
+    container_name: elastic
+    image: elasticsearch:8.6.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - http.cors.enabled=true
+      - http.cors.allow-origin=http://localhost:8080
+    env_file: .env
+    ports:
+      - "${ELASTIC_PORT}:${ELASTIC_PORT}"
+    networks:
+     - network_project
+    depends_on:
+      - backend
+
+  etl:
+    container_name: etl
+    build: ./etl
+    env_file: .env
+    networks:
+     - network_project
+    depends_on:
+      - db
+      - backend
+      - nginx
+      - elastic
+
+  elasticvue:
+    image: cars10/elasticvue:1.0.1
+    container_name: elasticvue
+    ports:
+      - "${ELASTIC_PORT_VUE}:${ELASTIC_PORT_VUE}"
+    networks:
+     - network_project
+    depends_on:
+      - elastic
+      - etl
+
+volumes:
+  db_data:
+  static_data:
+  media_data:
+
+networks:
+  network_project:
