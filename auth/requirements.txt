@@ -1,0 +1,7 @@
+fastapi==0.109.2
+pydantic==2.6.1
+sqlalchemy==2.0.27
+alembic==1.13.1
+redis==5.0.1
+typer==0.9.0
+passlib==1.7.4
