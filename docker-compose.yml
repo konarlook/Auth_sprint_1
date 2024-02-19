@@ -4,13 +4,13 @@ version: '3'
 services:
   postgres_auth:
     container_name: postgres_auth
-    image: postgres:13.4
+    image: postgres:${POSTGRES_AUTH_VERSION}
     restart: always
     env_file: .env
     environment:
-      POSTGRES_DB: $AUTH_DB_NAME
-      POSTGRES_USER: $AUTH_DB_USER
-      POSTGRES_PASSWORD: $AUTH_DB_PASSWORD
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     volumes:
       - auth_db_data:/var/lib/postgres/data
     networks:
