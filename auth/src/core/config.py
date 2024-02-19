@@ -71,3 +71,7 @@ class BackendSettings(_BaseSettings):
 class Settings(CommonSettings):
     backend: BackendSettings = BackendSettings()
     redis: RedisSettings = RedisSettings()
+    postgres: PostgresSettings = PostgresSettings()
+
+
+settings = Settings()

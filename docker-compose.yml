@@ -78,7 +78,7 @@ services:
     container_name: fastapi
     env_file: .env
     restart: unless-stopped
-    build: fastapi
+    build: movies
     expose:
       - "${BACKEND_FASTAPI_PORT}"
     networks:

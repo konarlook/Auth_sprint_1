@@ -1,7 +1,7 @@
 from functools import lru_cache
 from uuid import UUID
 
-from fastapi import Depends
+from movies import Depends
 
 from db.elastic import get_elastic
 from db.redis import get_redis
