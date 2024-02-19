@@ -2,6 +2,47 @@
 version: '3'
 
 services:
+  postgres_auth:
+    container_name: postgres_auth
+    image: postgres:13.4
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_DB: $AUTH_DB_NAME
+      POSTGRES_USER: $AUTH_DB_USER
+      POSTGRES_PASSWORD: $AUTH_DB_PASSWORD
+    volumes:
+      - auth_db_data:/var/lib/postgres/data
+    networks:
+      - auth_network
+
+  auth:
+    container_name: auth
+    env_file: .env
+    restart: on-failure
+    build: auth
+    networks:
+      - auth_network
+    depends_on:
+      - postgres_auth
+
+  redis_auth:
+    container_name: redis_auth
+    image: redis:latest
+    env_file: .env
+    restart: always
+    volumes:
+      - /redis_auth/dаta:/root/redis
+      - /redis_auth/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
+      REDIS_PORT: ${AUTH_REDIS_PORT}
+      REDIS_DATABASES: ${AUTH_REDIS_DATABASES}
+    networks:
+      - auth_network
+    depends_on:
+      - postgres_auth
+      - auth
 
   db:
     container_name: postgres
@@ -42,6 +83,7 @@ services:
       - "${BACKEND_FASTAPI_PORT}"
     networks:
      - network_project
+     - auth_network
     depends_on:
       - db
 
@@ -93,6 +135,7 @@ services:
       - media_data:/app/media
     networks:
      - network_project
+     - auth_network
     depends_on:
       - backend
       - fastapi
@@ -140,6 +183,10 @@ volumes:
   db_data:
   static_data:
   media_data:
+  auth_db_data:
 
 networks:
   network_project:
+    driver: bridge
+  auth_network:
+    driver: bridge
