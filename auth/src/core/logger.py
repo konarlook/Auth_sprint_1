@@ -27,10 +27,12 @@ LOGGING = {
         },
         "console": {
             "level": "DEBUG",
+            "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
         "access": {
             "formatter": "access",
+            "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
         },
     },

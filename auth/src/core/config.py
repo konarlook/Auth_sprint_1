@@ -35,7 +35,10 @@ class PostgresSettings(_BaseSettings):
         default=5432,
         description='Порт Postgres для сервиса авторизации',
     )
-    postgres_database: str = Field()
+    postgres_database: str = Field(
+        default='auth',
+        description='База данных для хранения информации пользователей',
+    )
 
 
 class RedisSettings(_BaseSettings):
