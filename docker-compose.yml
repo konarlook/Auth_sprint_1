@@ -75,7 +75,7 @@ services:
       - db
 
   fastapi:
-    container_name: fastapi
+    container_name: movies
     env_file: .env
     restart: unless-stopped
     build: movies

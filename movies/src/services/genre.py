@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from movies import Depends
+from fastapi import Depends
 
 from db.elastic import get_elastic
 from db.redis import get_redis
