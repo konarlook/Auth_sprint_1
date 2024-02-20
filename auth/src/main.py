@@ -1,7 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
 
-import redis
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
