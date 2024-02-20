@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/timestamp.proto";
+
+service Auth {
+    /*Регистрация пользователя*/
+    rpc SignUp (SignUpRequest) returns (SignUpResponse) {};
+    /*Авторизация пользователя*/
+    rpc Login (LoginRequest) returns (LoginResponse) {};
+    /*Обновление refresh-токена*/
+    rpc TokenRefresh (TokenRefreshRequest) returns (TokenRefreshResponse) {};
+    /*Выход из аккаунта*/
+    rpc Logout (LogoutRequest) returns (LogoutResponse) {};
+    /**/
+    rpc ChangeIp (ChangeIpRequest) returns (ChangeIpResponse) {};
+    /*Получение истории авторизации*/
+    rpc GetHistory (GetHistoryRequest) returns (GetHistoryResponse) {};
+}
+
+
+message SignUpRequest {
+    string email = 1;
+    optional string user_name = 2;
+    string password = 3;
+    optional string first_name = 4;
+    optional string last_name = 5;
+
+}
+
+message SignUpResponse {
+    int64 user_id = 1;
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message LoginRequest {
+    oneof login {
+        string email = 1;
+        string user_name = 2;
+    }
+    string password = 3;
+
+}
+
+message LoginResponse {
+    string token = 1;
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message TokenRefreshRequest {
+
+}
+
+message TokenRefreshResponse {
+    string refresh_token = 1;
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message LogoutRequest {
+
+}
+
+message LogoutResponse {
+    google.protobuf.Timestamp timestamp = 2;
+
+}
+
+message ChangeIpRequest {
+
+}
+
+message ChangeIpResponse {
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message GetHistoryRequest {
+
+}
+
+message GetHistoryResponse {
+    google.protobuf.Timestamp timestamp = 2;
+}

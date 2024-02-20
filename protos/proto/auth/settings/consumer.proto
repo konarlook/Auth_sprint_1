@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package auth.consumer;
+
+message GrpcConsumer {
+    oneof consumer {
+        consumer.GrpsUser user = 1;
+        GrpsSystem system = 2;
+    }
+}
+
+message GrpsConsumer {
+    oneof consumer {
+        GrpsUser user = 1;
+        GrpsSystem system = 2;
+    }
+}
+
+message GrpsUser {
+    int64 id = 1;
+    repeated GrpsRole role = 2;
+    string email = 3;
+    optional string user_name = 4;
+    optional string first_name = 5;
+    optional string last_name = 6;
+    optional PhoneNumer phone_numer = 7;
+
+}
+
+message PhoneNumer {
+    int64 country_id = 1;
+    int64 phone_number = 2;
+}
+
+message GrpsSystem {
+    int64 id = 1;
+    repeated GrpsRole= 2;
+}
+
+message GrpsRole {
+    string role_name = 1;
+}
+
+message GrpsOrg {
+    int64 ord_id = 1;
+    string org_name = 2;
+}
