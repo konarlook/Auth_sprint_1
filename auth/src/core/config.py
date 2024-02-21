@@ -24,6 +24,10 @@ class CommonSettings(_BaseSettings):
         default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         description='Корень проекта',
     )
+    debug_mode: bool = Field(
+        default=False,
+        description="Режим отладки сервиса авторизации",
+    )
 
 
 class PostgresSettings(_BaseSettings):
@@ -39,6 +43,18 @@ class PostgresSettings(_BaseSettings):
         default='auth',
         description='База данных для хранения информации пользователей',
     )
+    postgres_user: str = Field(default='auth_user')
+    postgres_password: str = Field(default='auth_password')
+
+    @property
+    def database_url_asyncpg(self):
+        return "postgresql+asyncpg://{}:{}@{}:{}/{}".format(
+            self.postgres_user,
+            self.postgres_password,
+            self.postgres_host,
+            self.postgres_port,
+            self.postgres_database,
+        )
 
 
 class RedisSettings(_BaseSettings):
@@ -53,6 +69,10 @@ class RedisSettings(_BaseSettings):
     redis_database: str = Field(
         default='0',
         description='База данных для хранения токенов',
+    )
+    redis_password: str = Field(
+        default='auth_pass',
+        description='Пароль от Redis',
     )
     redis_time: int = Field(
         default=3600,
