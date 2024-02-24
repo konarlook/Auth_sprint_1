@@ -20,12 +20,12 @@ class SignUpRequest(_message.Message):
     def __init__(self, email: _Optional[str] = ..., user_name: _Optional[str] = ..., password: _Optional[str] = ..., first_name: _Optional[str] = ..., last_name: _Optional[str] = ...) -> None: ...
 
 class SignUpResponse(_message.Message):
-    __slots__ = ("user_id", "timestamp")
-    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("email", "timestamp")
+    EMAIL_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    user_id: int
+    email: str
     timestamp: _timestamp_pb2.Timestamp
-    def __init__(self, user_id: _Optional[int] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, email: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class LoginRequest(_message.Message):
     __slots__ = ("email", "user_name", "password")
@@ -38,12 +38,14 @@ class LoginRequest(_message.Message):
     def __init__(self, email: _Optional[str] = ..., user_name: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
 
 class LoginResponse(_message.Message):
-    __slots__ = ("token", "timestamp")
-    TOKEN_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("access_token", "refresh_token", "timestamp")
+    ACCESS_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    REFRESH_TOKEN_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    token: str
+    access_token: str
+    refresh_token: str
     timestamp: _timestamp_pb2.Timestamp
-    def __init__(self, token: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, access_token: _Optional[str] = ..., refresh_token: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class TokenRefreshRequest(_message.Message):
     __slots__ = ("refresh_token",)
@@ -52,20 +54,20 @@ class TokenRefreshRequest(_message.Message):
     def __init__(self, refresh_token: _Optional[str] = ...) -> None: ...
 
 class TokenRefreshResponse(_message.Message):
-    __slots__ = ("token", "refresh_token", "timestamp")
-    TOKEN_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("access_token", "refresh_token", "timestamp")
+    ACCESS_TOKEN_FIELD_NUMBER: _ClassVar[int]
     REFRESH_TOKEN_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    token: str
+    access_token: str
     refresh_token: str
     timestamp: _timestamp_pb2.Timestamp
-    def __init__(self, token: _Optional[str] = ..., refresh_token: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, access_token: _Optional[str] = ..., refresh_token: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class LogoutRequest(_message.Message):
-    __slots__ = ("token",)
-    TOKEN_FIELD_NUMBER: _ClassVar[int]
-    token: str
-    def __init__(self, token: _Optional[str] = ...) -> None: ...
+    __slots__ = ("access_token",)
+    ACCESS_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    access_token: str
+    def __init__(self, access_token: _Optional[str] = ...) -> None: ...
 
 class LogoutResponse(_message.Message):
     __slots__ = ("timestamp",)
