@@ -44,7 +44,7 @@ class PostgresSettings(_BaseSettings):
         description='База данных для хранения информации пользователей',
     )
     postgres_user: str = Field(default='auth_user')
-    postgres_password: str = Field(default='auth_password')
+    postgres_password: str = Field(default='auth_pass')
 
     @property
     def database_url_asyncpg(self):
