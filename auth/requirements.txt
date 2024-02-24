@@ -1,5 +1,5 @@
 fastapi==0.109.2
-pydantic==2.6.1
+pydantic[email]==2.6.1
 pydantic-settings==2.2.1
 orjson==3.9.14
 python-dotenv==1.0.1

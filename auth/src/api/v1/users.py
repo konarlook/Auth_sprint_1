@@ -2,21 +2,25 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.auth_orm_models import UserDataOrm
+from schemas.entity import CreateUserSchema
 
 router = APIRouter()
 
 
 @router.get(
     path="/signup/",
-    response_model=UserDataOrm,
+    response_model=CreateUserSchema,
     status_code=HTTPStatus.CREATED,
     summary='Регистрация пользователя',
     description='Регистрация пользователю по обязательным полям',
     tags=['Страница регистрации'],
 )
-async def signup_user():
+async def create_user(
+        user_create: CreateUserSchema,
+        session: AsyncSession,
+):
     """User registration endpoint by required fields."""
     pass
 
