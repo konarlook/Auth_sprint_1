@@ -26,7 +26,7 @@ message SignUpRequest {
 }
 
 message SignUpResponse {
-    int64 user_id = 1;
+    string email = 1;
     google.protobuf.Timestamp timestamp = 2;
 }
 
@@ -40,8 +40,9 @@ message LoginRequest {
 }
 
 message LoginResponse {
-    string token = 1;
-    google.protobuf.Timestamp timestamp = 2;
+    string access_token = 1;
+    string refresh_token = 2;
+    google.protobuf.Timestamp timestamp = 3;
 }
 
 message TokenRefreshRequest {
@@ -49,13 +50,13 @@ message TokenRefreshRequest {
 }
 
 message TokenRefreshResponse {
-    string token = 1;
+    string access_token = 1;
     string refresh_token = 2;
     google.protobuf.Timestamp timestamp = 3;
 }
 
 message LogoutRequest {
-    string token = 1;
+    string access_token = 1;
 }
 
 message LogoutResponse {
