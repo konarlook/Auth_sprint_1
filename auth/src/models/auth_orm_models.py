@@ -1,7 +1,6 @@
 import uuid
-from typing import List
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UniqueConstraint, ForeignKey
 
 from models.base import Base, str_50, str_256, intpk, uuidpk, datetime_at_utc
@@ -16,9 +15,6 @@ class UsersOrm(Base):
     )
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), comment="ID роли")
 
-    role: Mapped["RolesOrm"] = relationship(back_populates="roles")
-    user: Mapped["UserDataOrm"] = relationship(back_populates="users")
-
 
 class RolesOrm(Base):
     __tablename__ = "roles"
@@ -26,10 +22,9 @@ class RolesOrm(Base):
 
     id: Mapped[intpk]
     role_name: Mapped[str_50] = mapped_column(comment="Название роли")
-    comment: Mapped[str_256] = mapped_column(comment="Комментарий к3 роли")
-
-    user: Mapped["UsersOrm"] = relationship(back_populates="users")
-    actions: Mapped["MixActionsOrm"] = relationship(back_populates="role")
+    comment: Mapped[str_256] = mapped_column(
+        comment="Комментарий к роли", nullable=True
+    )
 
 
 class MixActionsOrm(Base):
@@ -42,9 +37,6 @@ class MixActionsOrm(Base):
         ForeignKey("actions.id"), comment="ID действия"
     )
 
-    roles: Mapped[List["RolesOrm"]] = relationship(back_populates="roles")
-    actions: Mapped[List["ActionsOrm"]] = relationship(back_populates="actions")
-
 
 class ActionsOrm(Base):
     __tablename__ = "actions"
@@ -52,9 +44,9 @@ class ActionsOrm(Base):
 
     id: Mapped[intpk]
     action_name: Mapped[str_50] = mapped_column(comment="Название действия")
-    comment: Mapped[str_256] = mapped_column(comment="Комментарий к действию")
-
-    actions: Mapped["MixActionsOrm"] = relationship(back_populates="mix_actions")
+    comment: Mapped[str_256] = mapped_column(
+        comment="Комментарий к действию", nullable=True
+    )
 
 
 class UserDataOrm(Base):
@@ -66,22 +58,27 @@ class UserDataOrm(Base):
     )
 
     id: Mapped[uuidpk]
-    user_name: Mapped[str_50] = mapped_column(comment="Имя пользователя", unique=True)
+    user_name: Mapped[str_50] = mapped_column(
+        comment="Имя пользователя", unique=True, nullable=True
+    )
     hashed_password: Mapped[str] = mapped_column(
         comment="Хэш пароля пользователя", nullable=False
     )
-    first_name: Mapped[str_50] = mapped_column(comment="Имя пользователя")
-    last_name: Mapped[str_50] = mapped_column(comment="Фамилия пользователя")
+    first_name: Mapped[str_50] = mapped_column(
+        comment="Имя пользователя", nullable=True
+    )
+    last_name: Mapped[str_50] = mapped_column(
+        comment="Фамилия пользователя", nullable=True
+    )
     email: Mapped[str_256] = mapped_column(
         comment="Электронная почта пользователя", nullable=False, unique=True
     )
     register_date: Mapped[datetime_at_utc] = mapped_column(
         comment="Дата регистрации пользователя", nullable=False
     )
-    phone_number: Mapped[str_50] = mapped_column(comment="Номер телефона пользователя")
-
-    users: Mapped["UsersOrm"] = relationship(back_populates="user")
-    auth_history: Mapped[List["AuthHistotyOrm"]] = relationship(back_populates="user")
+    phone_number: Mapped[str_50] = mapped_column(
+        comment="Номер телефона пользователя", nullable=True
+    )
 
 
 class AuthHistotyOrm(Base):
@@ -92,12 +89,10 @@ class AuthHistotyOrm(Base):
     dt_login: Mapped[datetime_at_utc] = mapped_column(
         comment="Дата авторизации пользователя", nullable=False
     )
-    login_date: Mapped[datetime_at_utc] = mapped_column(
-        comment="Дата авторизации пользователя", nullable=False
+    dt_logout: Mapped[datetime_at_utc] = mapped_column(
+        comment="Дата logout пользователя", nullable=False
     )
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user_data.id"), comment="ID пользователя"
     )
-    device_id: Mapped[int] = mapped_column(comment="ID устройства")
-
-    user: Mapped["UserDataOrm"] = relationship(back_populates="user_data")
+    device_id: Mapped[int] = mapped_column(comment="ID устройства", nullable=True)

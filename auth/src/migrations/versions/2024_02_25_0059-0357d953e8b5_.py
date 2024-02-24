@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 90c406f86da2
+Revision ID: 0357d953e8b5
 Revises:
-Create Date: 2024-02-23 17:53:42.261233
+Create Date: 2024-02-25 00:59:39.688251
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "90c406f86da2"
+revision: str = "0357d953e8b5"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column(
             "comment",
             sa.String(length=256),
-            nullable=False,
+            nullable=True,
             comment="Комментарий к действию",
         ),
         sa.PrimaryKeyConstraint("id"),
@@ -47,8 +47,8 @@ def upgrade() -> None:
         sa.Column(
             "comment",
             sa.String(length=256),
-            nullable=False,
-            comment="Комментарий к3 роли",
+            nullable=True,
+            comment="Комментарий к роли",
         ),
         sa.PrimaryKeyConstraint("id"),
         comment="Таблица ролей",
@@ -57,10 +57,7 @@ def upgrade() -> None:
         "user_data",
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
-            "user_name",
-            sa.String(length=50),
-            nullable=False,
-            comment="Имя пользователя",
+            "user_name", sa.String(length=50), nullable=True, comment="Имя пользователя"
         ),
         sa.Column(
             "hashed_password",
@@ -71,13 +68,13 @@ def upgrade() -> None:
         sa.Column(
             "first_name",
             sa.String(length=50),
-            nullable=False,
+            nullable=True,
             comment="Имя пользователя",
         ),
         sa.Column(
             "last_name",
             sa.String(length=50),
-            nullable=False,
+            nullable=True,
             comment="Фамилия пользователя",
         ),
         sa.Column(
@@ -96,7 +93,7 @@ def upgrade() -> None:
         sa.Column(
             "phone_number",
             sa.String(length=50),
-            nullable=False,
+            nullable=True,
             comment="Номер телефона пользователя",
         ),
         sa.PrimaryKeyConstraint("id"),
@@ -117,14 +114,14 @@ def upgrade() -> None:
             comment="Дата авторизации пользователя",
         ),
         sa.Column(
-            "login_date",
+            "dt_logout",
             sa.DateTime(),
             server_default=sa.text("TIMEZONE('utc', now())"),
             nullable=False,
-            comment="Дата авторизации пользователя",
+            comment="Дата logout пользователя",
         ),
         sa.Column("user_id", sa.Uuid(), nullable=False, comment="ID пользователя"),
-        sa.Column("device_id", sa.Integer(), nullable=False, comment="ID устройства"),
+        sa.Column("device_id", sa.Integer(), nullable=True, comment="ID устройства"),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["user_data.id"],
