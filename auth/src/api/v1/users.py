@@ -3,17 +3,21 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from models.auth_orm_models import UserDataOrm
+
 router = APIRouter()
 
 
 @router.get(
-    path="/register/",
-    response_model=...,
+    path="/signup/",
+    response_model=UserDataOrm,
+    status_code=HTTPStatus.CREATED,
     summary='Регистрация пользователя',
     description='Регистрация пользователю по обязательным полям',
     tags=['Страница регистрации'],
 )
-async def register_user():
+async def signup_user():
+    """User registration endpoint by required fields."""
     pass
 
 
@@ -25,6 +29,7 @@ async def register_user():
     tags=['Основная страница', 'Авторизация пользователя'],
 )
 async def login_user():
+    """User login endpoint by email and password."""
     pass
 
 
@@ -36,6 +41,7 @@ async def login_user():
     tags=['Обновление токена'],
 )
 async def refresh_token():
+    """Get new access and refresh tokens."""
     pass
 
 
@@ -44,7 +50,8 @@ async def refresh_token():
     response_model=...,
     summary='Выход из профиля',
     description='Выход из профиля по access token',
-    tags=['Logout',],
+    tags=['Logout', ],
 )
 async def logout_user():
+    """Logout endpoint by access token."""
     pass
