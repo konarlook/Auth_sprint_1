@@ -105,7 +105,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "auth_history",
-        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
             "dt_login",
             sa.DateTime(),

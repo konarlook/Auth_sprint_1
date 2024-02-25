@@ -86,7 +86,7 @@ class AuthHistotyOrm(Base):
     __tablename__ = "auth_history"
     __table_args__ = {"comment": "Таблица истории авторизации"}
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     dt_login: Mapped[datetime_at_utc] = mapped_column(
         comment="Дата авторизации пользователя", nullable=False
     )
