@@ -6,26 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from schemas.entity import CreateUserSchema
 
-router = APIRouter()
+router = APIRouter(prefix='/auth', tags=['Auth',])
 
 
 @router.get(
     path="/signup/",
-    response_model=CreateUserSchema,
-    status_code=HTTPStatus.CREATED,
     summary='Регистрация пользователя',
     description='Регистрация пользователю по обязательным полям',
     tags=['Страница регистрации'],
 )
 async def create_user(
-        user_create: CreateUserSchema,
-        session: AsyncSession,
-):
+        user_create: CreateUserSchema
+) -> dict[str, str]:
     """User registration endpoint by required fields."""
     pass
 
 
-@router.get(
+'''@router.get(
     path="/login/",
     response_model=...,
     summary='Авторизация пользователя',
@@ -58,4 +55,4 @@ async def refresh_token():
 )
 async def logout_user():
     """Logout endpoint by access token."""
-    pass
+    pass'''

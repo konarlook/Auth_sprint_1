@@ -29,14 +29,14 @@ async def lifespan(application: FastAPI):
 app = FastAPI(
     title=settings.service_name,
     description="Сервис авторизации",
-    docs_url="auth/api/openapi",
-    openapi_url="auth/api/openapi.json",
+    docs_url="/auth/api/openapi",
+    openapi_url="/auth/api/openapi.json",
     default_response_class=ORJSONResponse,
     version="1.0.0",
     lifespan=lifespan,
 )
 
-app.include_router(users.router, prefix="auth/api/v1")
+app.include_router(router=users.router)
 
 
 if __name__ == "__main__":
