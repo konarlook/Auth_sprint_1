@@ -17,6 +17,6 @@ class ActionsBaseSchema(_BaseModel):
 class RoleBaseSchema(_BaseModel):
     role_name: str
     comment: str
-    actions: List[ActionsBaseSchema]
+    actions: ActionsBaseSchema
 
 
