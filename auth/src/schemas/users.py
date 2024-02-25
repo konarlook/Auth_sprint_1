@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, EmailStr
 
-from .role import RoleBaseSchema
+from schemas.roles import RoleBaseSchema
 
 
 class UserBaseSchema(BaseModel):
@@ -12,8 +12,8 @@ class UserBaseSchema(BaseModel):
 
 class LoginUserSchema(UserBaseSchema):
     hashed_password: str = Field(
-        alias='password',
-        description='User password',
+        alias="password",
+        description="User password",
     )
 
 

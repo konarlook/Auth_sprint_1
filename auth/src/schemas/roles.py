@@ -1,8 +1,6 @@
-from typing import List
 from uuid import UUID
-from datetime import datetime
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel
 
 
 class _BaseModel(BaseModel):
@@ -18,5 +16,3 @@ class RoleBaseSchema(_BaseModel):
     role_name: str
     comment: str
     actions: ActionsBaseSchema
-
-
