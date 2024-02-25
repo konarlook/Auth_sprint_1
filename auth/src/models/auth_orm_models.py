@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UniqueConstraint, ForeignKey
@@ -85,12 +86,12 @@ class AuthHistotyOrm(Base):
     __tablename__ = "auth_history"
     __table_args__ = {"comment": "Таблица истории авторизации"}
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     dt_login: Mapped[datetime_at_utc] = mapped_column(
         comment="Дата авторизации пользователя", nullable=False
     )
-    dt_logout: Mapped[datetime_at_utc] = mapped_column(
-        comment="Дата logout пользователя", nullable=False
+    dt_logout: Mapped[datetime.datetime] = mapped_column(
+        comment="Дата logout пользователя", nullable=True
     )
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user_data.id"), comment="ID пользователя"

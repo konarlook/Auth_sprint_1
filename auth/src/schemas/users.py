@@ -1,10 +1,9 @@
-from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr
 
-from .roles import RoleBaseSchema
+from schemas.roles import RoleBaseSchema
 
 
 class UserBaseSchema(BaseModel):
@@ -12,43 +11,26 @@ class UserBaseSchema(BaseModel):
 
 
 class LoginUserSchema(UserBaseSchema):
-    hashed_password: str = Field(
-        alias='password',
-        description='User password',
-    )
+    hashed_password: str
 
 
 class FullUserSchema(UserBaseSchema):
-    username: str | None = None
-    first_name: str | None = None
-    last_name: str | None = None
-    prone_number: str | None = None
+    id: UUID
+    user_name: str | None = Field(default=None)
+    first_name: str | None = Field(default=None)
+    last_name: str | None = Field(default=None)
+    # TODO: добавить валидацию номера
+    phone_number: str | None = Field(default=None)
+    register_date: datetime = Field(default=datetime.now())
 
 
-class MixinCreateUserSchema(LoginUserSchema, FullUserSchema):
+class CreateUserSchema(LoginUserSchema, FullUserSchema):
     pass
 
 
-class UserDataInDBSchema(FullUserSchema):
-    register_data: datetime
-
-
 class UserDataToken(UserBaseSchema):
-    token: UUID = Field(..., alias='access_token')
     id: UUID
-    expires: datetime
     role: RoleBaseSchema
-    token_type: Optional[str] = Field(default='bearer', description='Token type')
-
-    @validator('token')
-    def hexlify_token(cls, value):
-        """Converts hex encoded token to."""
-        return value.hex
 
     class Config:
         orm_mode = True
-        populate_by_name = True
-
-
-class UserResponseSchema(UserBaseSchema):
-    token: UserDataToken = dict()
