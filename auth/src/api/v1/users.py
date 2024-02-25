@@ -1,11 +1,13 @@
 from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from schemas.users import MixinCreateUserSchema
+from db.sqlalchemy_db import get_db_session
+from schemas.users import MixinCreateUserSchema, UserDataInDBSchema
+from services.user_service import user_service
+from helpers.exceptions import AuthException
 
 router = APIRouter(prefix='/auth', tags=['Auth', ])
 security = HTTPBasic()
@@ -13,18 +15,23 @@ security = HTTPBasic()
 
 @router.get(
     path="/signup/",
-    response_model=MixinCreateUserSchema,
+    response_model=UserDataInDBSchema,
     status_code=status.HTTP_201_CREATED,
     summary='Регистрация пользователя',
     description='Регистрация пользователю по обязательным полям',
     tags=['Страница регистрации'],
 )
 async def create_user(
+        user_dto: MixinCreateUserSchema,
+        db: AsyncSession = Depends(get_db_session),
 ) -> MixinCreateUserSchema:
     """User registration endpoint by required fields."""
     # Get user email -> {if len == 0 -> next, else -> EXCEPTION]
+    request_email = await user_service.get_user_by_email(email=user_dto.email)
+    if not request_email:
+        raise AuthException()
     # Create user by email and password (and other fields)
-    pass
+
 
 
 @router.get(

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, EmailStr, validator
 
-from .role import RoleBaseSchema
+from .roles import RoleBaseSchema
 
 
 class UserBaseSchema(BaseModel):
@@ -37,7 +37,7 @@ class UserDataToken(UserBaseSchema):
     token: UUID = Field(..., alias='access_token')
     id: UUID
     expires: datetime
-    role = RoleBaseSchema
+    role: RoleBaseSchema
     token_type: Optional[str] = Field(default='bearer', description='Token type')
 
     @validator('token')

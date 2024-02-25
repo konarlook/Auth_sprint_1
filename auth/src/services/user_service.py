@@ -1,19 +1,33 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from fastapi import Header, HTTPException, status
+from pydantic import EmailStr
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.auth_orm_models import UserDataOrm
-from schemas.user import CreateUserSchema
+from ..repositories.sqlalchemy_repository import SQLAlchemyRepository
+
+test_dict = {
+    "email": ["admin", ],
+    "password": ["admin", ]
+}
 
 
 class AuthUserService:
-    async def get_user_by_token(
+    async def get_user_by_email(
             self,
-            token: str = Header(alias='access-token'),
-    ) -> UserDataOrm:
-        """Getting user authorization data by token"""
-        if token not in ...:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail='access token is invalid',
-            )
+            database: AsyncSession,
+            email: EmailStr
+    ) -> list[str | None]:
+        """Getting user object by email."""
+        # TODO: delete after connect to repositories
+        if False:
+            result = await session.get(search=email)
+            return result.scalar_one_or_none()
+        else:
+            result = test_dict.get('email')
+            if result == email:
+                return result
+            return list()
+
+    async def create_user(self):
+        pass
+
+
+user_service = AuthUserService()
