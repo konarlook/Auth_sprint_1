@@ -1,14 +1,19 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from fastapi import Header, HTTPException, status
 
 from models.auth_orm_models import UserDataOrm
 from schemas.user import CreateUserSchema
 
 
-def create_user(session: Session, user: CreateUserSchema) -> UserDataOrm:
-    db_user = UserDataOrm(**user.dict())
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-
-    return db_user
+class AuthUserService:
+    async def get_user_by_token(
+            self,
+            token: str = Header(alias='access-token'),
+    ) -> UserDataOrm:
+        """Getting user authorization data by token"""
+        if token not in ...:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='access token is invalid',
+            )

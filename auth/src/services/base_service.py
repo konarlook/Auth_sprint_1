@@ -23,5 +23,6 @@ class BaseService(ABC):
         pass
 
     async def create(self, session: AsyncSession):
+        """Create user by fields with email verification."""
         pass
 
