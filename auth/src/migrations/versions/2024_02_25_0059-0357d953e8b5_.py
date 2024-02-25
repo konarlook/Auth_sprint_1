@@ -116,7 +116,6 @@ def upgrade() -> None:
         sa.Column(
             "dt_logout",
             sa.DateTime(),
-            server_default=sa.text("TIMEZONE('utc', now())"),
             nullable=False,
             comment="Дата logout пользователя",
         ),
