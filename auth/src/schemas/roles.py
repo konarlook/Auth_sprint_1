@@ -1,15 +1,18 @@
-from uuid import UUID
-
 from pydantic import BaseModel
 
 
 class _BaseModel(BaseModel):
-    id: UUID
+    id: int
 
 
-class ActionsBaseSchema(_BaseModel):
+class ActionsBaseSchema(BaseModel):
     action_name: str
     comment: str
+
+
+class RolesActionsSchema(BaseModel):
+    role_name: str
+    actions: list[ActionsBaseSchema]
 
 
 class RoleBaseSchema(_BaseModel):

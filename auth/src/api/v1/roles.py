@@ -1,4 +1,10 @@
-from fastapi import APIRouter
+from http import HTTPStatus
+from http.client import HTTPException
+
+from fastapi import APIRouter, Depends
+
+from schemas.roles import RolesActionsSchema
+from services.role import RoleService, get_role_service
 
 router = APIRouter()
 
@@ -8,9 +14,12 @@ async def create_role():
     pass
 
 
-@router.get("/roles/read", tags=["roles"])
-async def get_roles():
-    pass
+@router.get(path="/roles/read", response_model=list[RolesActionsSchema], tags=["roles"])
+async def get_roles(role_service: RoleService = Depends(get_role_service)):
+    response = await role_service.get_all_roles()
+    if not response:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="roles not found")
+    return response
 
 
 @router.post("/roles/update", tags=["roles"])
