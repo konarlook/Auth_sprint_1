@@ -50,7 +50,7 @@ class SQLAlchemyRepository(
         await self.session.commit()
 
     async def create(self, entity_model):
-        db_obj = self._model(**entity_model.dict())
+        db_obj = self._model(**entity_model)
         self.session.add(db_obj)
         await self.session.flush()
         await self.session.commit()

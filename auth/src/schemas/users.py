@@ -19,9 +19,8 @@ class FullUserSchema(UserBaseSchema):
     user_name: str | None = Field(default=None)
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
-    # TODO: добавить валидацию номера
     phone_number: str | None = Field(default=None)
-    register_date: datetime = Field(default=datetime.now())
+    register_date: datetime | None = Field(default=None)
 
 
 class CreateUserSchema(LoginUserSchema, FullUserSchema):

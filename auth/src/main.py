@@ -37,7 +37,6 @@ app = FastAPI(
 )
 
 app.include_router(router=users.router)
-app.include_router(router=roles.router)
 
 
 if __name__ == "__main__":

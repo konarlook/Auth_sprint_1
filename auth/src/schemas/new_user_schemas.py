@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -8,7 +7,7 @@ class BaseRequestSchema(BaseModel):
 
 
 class CreateUserRequestSchema(BaseRequestSchema):
-    username: str | None = Field(default=None)
+    user_name: str | None = Field(default=None)
     password: str
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)

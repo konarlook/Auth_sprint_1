@@ -4,9 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from db.sqlalchemy_db import get_db_session
-from schemas.users import MixinCreateUserSchema, UserDataInDBSchema
-from services.user_service import user_service
+from schemas.users import CreateUserSchema, UserBaseSchema
+from services.user_service import AuthUserService, get_user_service
 from helpers.exceptions import AuthException
 
 router = APIRouter(prefix='/auth', tags=['Auth', ])
@@ -15,26 +14,21 @@ security = HTTPBasic()
 
 @router.get(
     path="/signup/",
-    response_model=UserDataInDBSchema,
+    response_model=UserBaseSchema,
     status_code=status.HTTP_201_CREATED,
     summary='Регистрация пользователя',
     description='Регистрация пользователю по обязательным полям',
     tags=['Страница регистрации'],
 )
 async def create_user(
-        user_dto: MixinCreateUserSchema,
-        db: AsyncSession = Depends()
-) -> MixinCreateUserSchema:
+        user_dto: CreateUserSchema,
+        user_service: AuthUserService = Depends(get_user_service)
+) -> UserBaseSchema:
     """User registration endpoint by required fields."""
-    # Get user email -> {if len == 0 -> next, else -> EXCEPTION]
-    request_email = await user_service.get(
-        db=db,
-        email=user_dto.email
-    )
-    if not request_email:
+    request_email = await user_service.get(email=user_dto.email)
+    if request_email:
         raise AuthException()
-    # Create user by email and password (and other fields)
-    user = await user_service.create(db=db, user_dto=user_dto)
+    user = await user_service.create(user_dto=user_dto)
     return user
 
 
@@ -61,7 +55,6 @@ async def login_user():
     tags=['Обновление токена'],
 )
 async def refresh_token(
-        username: str = Depends(...)
 ) -> dict[str, str]:
     """Get new access and refresh tokens."""
     # Refresh JWT-token
@@ -91,9 +84,7 @@ async def logout_user(
     path='/change_pwd/',
 )
 async def change_password(
-        access_token: str = ...,
-        old_password: str = ...,
-        new_password: str = ...,
+
 ):
     """Change password from old to new."""
     # Get user by email -> always True
