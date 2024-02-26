@@ -11,8 +11,11 @@ class UserDataRepository(SQLAlchemyRepository):
     def __init__(self, session: AsyncSession):
         super().__init__(session=session)
 
-    async def get_user_by_email(self, email: str) -> FullUserSchema:
+    async def get_user_by_email(self, email: str) -> FullUserSchema | None:
         self._statement = select(self._model).where(self._model.email == email)
         raw_result = await self.read_one()
-        result = self.to_pydantic(db_obj=raw_result, pydantic_model=FullUserSchema)
+        try:
+            result = self.to_pydantic(db_obj=raw_result, pydantic_model=FullUserSchema)
+        except TypeError:
+            result = None
         return result
