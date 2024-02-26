@@ -33,7 +33,9 @@ class MixActionsOrm(Base):
     __table_args__ = {"comment": "Таблица привыязки действий к ролям"}
 
     id: Mapped[intpk]
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), comment="ID роли")
+    role_id: Mapped[int] = mapped_column(
+        ForeignKey("roles.id", ondelete="CASCADE"), comment="ID роли"
+    )
     action_id: Mapped[int] = mapped_column(
         ForeignKey("actions.id"), comment="ID действия"
     )
