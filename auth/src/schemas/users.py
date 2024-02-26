@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, EmailStr
 
-from .role import RoleBaseSchema
+from schemas.roles import RoleBaseSchema
 
 
 class UserBaseSchema(BaseModel):
@@ -11,31 +11,26 @@ class UserBaseSchema(BaseModel):
 
 
 class LoginUserSchema(UserBaseSchema):
-    hashed_password: str = Field(
-        alias='password',
-        description='User password',
-    )
+    hashed_password: str
 
 
 class FullUserSchema(UserBaseSchema):
-    username: str
-    first_name: str
-    last_name: str
+    id: UUID
+    user_name: str | None = Field(default=None)
+    first_name: str | None = Field(default=None)
+    last_name: str | None = Field(default=None)
     # TODO: добавить валидацию номера
-    prone_number: str
+    phone_number: str | None = Field(default=None)
+    register_date: datetime = Field(default=datetime.now())
 
 
-class MixinCreateUserSchema(LoginUserSchema, FullUserSchema):
+class CreateUserSchema(LoginUserSchema, FullUserSchema):
     pass
 
 
 class UserDataToken(UserBaseSchema):
     id: UUID
-    role = RoleBaseSchema
+    role: RoleBaseSchema
 
     class Config:
         orm_mode = True
-
-
-class UserDataInDBSchema(FullUserSchema):
-    register_data: datetime
