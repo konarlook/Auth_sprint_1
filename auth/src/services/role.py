@@ -37,6 +37,13 @@ class RoleService:
         await self.users_repo.set_role(user_id=user_id, role_id=role_data.id)
         return True
 
+    async def verify_role(self, user_id: uuid.UUID, role_name: str):
+        role_name_response = await self.users_repo.verify_role(user_id=user_id)
+        is_true = False
+        if role_name_response == role_name:
+            is_true = True
+        return is_true
+
 
 @lru_cache()
 def get_role_service(

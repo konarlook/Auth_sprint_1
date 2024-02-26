@@ -50,16 +50,13 @@ async def set_role(
     return HTTPStatus.OK
 
 
-@router.post("/roles/deprive", tags=["roles"])
-async def deprive_role():
-    pass
-
-
-@router.post("/roles/grant", tags=["roles"])
-async def grant_role():
-    pass
-
-
 @router.post("/roles/verify", tags=["roles"])
-async def verify_role():
-    pass
+async def verify_role(
+    user_id: uuid.UUID,
+    role_name: str,
+    role_service: RoleService = Depends(get_role_service),
+):
+    is_verified = await role_service.verify_role(user_id=user_id, role_name=role_name)
+    if not is_verified:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="role not found")
+    return HTTPStatus.OK

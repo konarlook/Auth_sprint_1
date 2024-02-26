@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel
 
 
@@ -18,3 +20,8 @@ class RolesActionsSchema(BaseModel):
 class RoleBaseSchema(_BaseModel):
     role_name: str
     comment: str | None
+
+
+class UsersRolesSchema(_BaseModel):
+    user_id: uuid.UUID
+    role_name: str
