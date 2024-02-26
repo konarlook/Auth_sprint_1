@@ -1,32 +1,23 @@
 from pydantic import EmailStr
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..repositories.sqlalchemy_repository import SQLAlchemyRepository
-
-test_dict = {
-    "email": ["admin", ],
-    "password": ["admin", ]
-}
+from .base_service import BaseService
 
 
-class AuthUserService:
-    async def get_user_by_email(
-            self,
-            database: AsyncSession,
-            email: EmailStr
-    ) -> list[str | None]:
-        """Getting user object by email."""
-        # TODO: delete after connect to repositories
-        if False:
-            result = await session.get(search=email)
-            return result.scalar_one_or_none()
-        else:
-            result = test_dict.get('email')
-            if result == email:
-                return result
-            return list()
+class AuthUserService(BaseService):
+    async def get(self, *, email: EmailStr):
+        """Get user information by email."""
+        pass
 
-    async def create_user(self):
+    async def create(self):
+        """Create a new user by requesting email and password."""
+        pass
+
+    async def delete(self):
+        """Delete user by email and password."""
+        pass
+
+    async def update(self):
+        """Update user information."""
         pass
 
 

@@ -9,7 +9,7 @@ from redis.asyncio import Redis
 
 from core.config import settings
 from core.logger import LOGGING
-from api.v1 import users
+from api.v1 import users, roles
 
 load_dotenv()
 
@@ -37,6 +37,7 @@ app = FastAPI(
 )
 
 app.include_router(router=users.router)
+app.include_router(router=roles.router)
 
 
 if __name__ == "__main__":

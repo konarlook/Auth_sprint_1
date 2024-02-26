@@ -23,15 +23,19 @@ security = HTTPBasic()
 )
 async def create_user(
         user_dto: MixinCreateUserSchema,
-        db: AsyncSession = Depends(get_db_session),
+        db: AsyncSession = Depends()
 ) -> MixinCreateUserSchema:
     """User registration endpoint by required fields."""
     # Get user email -> {if len == 0 -> next, else -> EXCEPTION]
-    request_email = await user_service.get_user_by_email(email=user_dto.email)
+    request_email = await user_service.get(
+        db=db,
+        email=user_dto.email
+    )
     if not request_email:
         raise AuthException()
     # Create user by email and password (and other fields)
-
+    user = await user_service.create(db=db, user_dto=user_dto)
+    return user
 
 
 @router.get(
