@@ -13,6 +13,4 @@ class UsersRepository(SQLAlchemyRepository):
         super().__init__(session=session)
 
     async def assign_role(self, user_id: uuid.UUID, role_id: int):
-        # db_obj = await self.create(users_role)
-        # return db_obj
         ...
