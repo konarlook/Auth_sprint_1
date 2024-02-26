@@ -16,6 +16,13 @@ class RoleService:
     async def get_all_roles(self) -> list[RolesActionsSchema]:
         return await self.roles_repo.get_roles()
 
+    async def delete_role(self, name: str):
+        role_data = await self.roles_repo.get_role_by_name(name=name)
+        if not role_data:
+            return None
+        await self.roles_repo.delete(self.roles_repo._model.id, role_data.id)
+        return True
+
 
 @lru_cache()
 def get_role_service(

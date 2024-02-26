@@ -3,7 +3,7 @@ from sqlalchemy import select, func
 
 from models.auth_orm_models import RolesOrm, ActionsOrm, MixActionsOrm
 from repositories.sqlalchemy_repository import SQLAlchemyRepository
-from schemas.roles import RolesActionsSchema
+from schemas.roles import RolesActionsSchema, RoleBaseSchema
 
 
 class RolesRepository(SQLAlchemyRepository):
@@ -36,4 +36,13 @@ class RolesRepository(SQLAlchemyRepository):
 
         raw_result = await self.read()
         result = [RolesActionsSchema(**item) for item in raw_result]
+        return result
+
+    async def get_role_by_name(self, name: str) -> RoleBaseSchema | None:
+        self._statement = select(RolesOrm).where(RolesOrm.role_name == name)
+        result = await self.read_one()
+        try:
+            result = self.to_pydantic(result, RoleBaseSchema)
+        except TypeError:
+            result = None
         return result

@@ -27,9 +27,12 @@ async def update_role():
     pass
 
 
-@router.post("/roles/delete", tags=["roles"])
-async def delete_role():
-    pass
+@router.post("/roles/delete/{name}", tags=["roles"])
+async def delete_role(name: str, role_service: RoleService = Depends(get_role_service)):
+    response = await role_service.delete_role(name=name)
+    if not response:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="role not found")
+    return HTTPStatus.OK
 
 
 @router.post("/roles/set", tags=["roles"])

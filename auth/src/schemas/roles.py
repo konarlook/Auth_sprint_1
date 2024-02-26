@@ -17,5 +17,4 @@ class RolesActionsSchema(BaseModel):
 
 class RoleBaseSchema(_BaseModel):
     role_name: str
-    comment: str
-    actions: ActionsBaseSchema
+    comment: str | None
