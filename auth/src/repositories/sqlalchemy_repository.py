@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Select, Update, update, delete
+from sqlalchemy import Select, Update, update, delete, insert
 from repositories.base import (
     MixinDeleteRepository,
     MixinCreateRepository,
@@ -49,6 +49,15 @@ class SQLAlchemyRepository(
             update(self._model).where(where_cond == orm_field).values(**update_data)
         )
         await self.session.execute(self._statement)
+        await self.session.commit()
+
+    async def insert(self, update_data):
+        self._statement = insert(self._model).values(**update_data)
+        await self.session.execute(self._statement)
+        await self.session.commit()
+
+    async def merge(self, update_data):
+        await self.session.merge(self._model(**update_data))
         await self.session.commit()
 
     async def create(self, entity_model):

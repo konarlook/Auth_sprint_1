@@ -12,5 +12,8 @@ class UsersRepository(SQLAlchemyRepository):
     def __init__(self, session: AsyncSession):
         super().__init__(session=session)
 
-    async def assign_role(self, user_id: uuid.UUID, role_id: int):
-        ...
+    async def set_role(self, user_id: uuid.UUID, role_id: int):
+        await self.merge(
+            update_data={"user_id": user_id, "role_id": role_id},
+        )
+        return True

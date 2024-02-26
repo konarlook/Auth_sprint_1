@@ -1,3 +1,4 @@
+import uuid
 from http import HTTPStatus
 from http.client import HTTPException
 
@@ -36,8 +37,17 @@ async def delete_role(name: str, role_service: RoleService = Depends(get_role_se
 
 
 @router.post("/roles/set", tags=["roles"])
-async def search_role():
-    pass
+async def set_role(
+    user_id: uuid.UUID,
+    role_name: str,
+    role_service: RoleService = Depends(get_role_service),
+):
+    # TODO(Mosyagingrigorii): Доабвить проверку на существование пользователя
+    role_data = await role_service.is_exist_role(name=role_name)
+    if not role_data:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="role not found")
+    await role_service.set_role(user_id=user_id, role_name=role_name)
+    return HTTPStatus.OK
 
 
 @router.post("/roles/deprive", tags=["roles"])
