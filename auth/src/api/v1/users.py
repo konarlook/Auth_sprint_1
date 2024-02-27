@@ -21,7 +21,7 @@ security = HTTPBasic()
     tags=['Страница регистрации'],
 )
 async def create_user(
-        user_dto: CreateUserSchema,
+        user_dto: CreateUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service)
 ) -> UserBaseSchema:
     """User registration endpoint by required fields."""

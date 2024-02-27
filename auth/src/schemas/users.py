@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime
 
 from pydantic import BaseModel, Field, EmailStr
@@ -15,12 +15,12 @@ class LoginUserSchema(UserBaseSchema):
 
 
 class FullUserSchema(UserBaseSchema):
-    id: UUID
+    id: UUID = Field(default=uuid4())
     user_name: str | None = Field(default=None)
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
     phone_number: str | None = Field(default=None)
-    register_date: datetime | None = Field(default=None)
+    register_date: datetime | None = Field(default_factory=datetime.now)
 
 
 class CreateUserSchema(LoginUserSchema, FullUserSchema):

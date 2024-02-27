@@ -4,6 +4,7 @@ from fastapi import Depends
 from .base_service import BaseService
 from repositories.user_data_repository import get_database_client, UserDataRepository
 from schemas.users import UserBaseSchema
+from helpers.password import verify_password, get_password_hash
 
 # from repositories.user_data_repository
 
@@ -18,6 +19,7 @@ class AuthUserService(BaseService):
 
     async def create(self, user_dto):
         """Create a new user by requesting email and password."""
+        user_dto.hashed_password = get_password_hash(user_dto.hashed_password)
         await self.database_client.create_user(user_data=user_dto)
         return UserBaseSchema(email=user_dto.email)
 
