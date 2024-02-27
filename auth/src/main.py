@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -9,7 +10,7 @@ from redis.asyncio import Redis
 
 from core.config import settings
 from core.logger import LOGGING
-from api.v1 import users, roles
+from api.v1 import users
 
 load_dotenv()
 

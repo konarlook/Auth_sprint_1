@@ -1,12 +1,17 @@
 from typing import Annotated
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from schemas.users import CreateUserSchema, UserBaseSchema
+from schemas.users import (CreateUserSchema,
+                           UserBaseSchema,
+                           LoginUserResponseSchema,
+                           LoginUserSchema,
+                           LoginUserResponseSchema,
+                           )
 from services.user_service import AuthUserService, get_user_service
 from helpers.exceptions import AuthException
+from helpers.password import verify_password, create_access_token
 
 router = APIRouter(prefix='/auth', tags=['Auth', ])
 security = HTTPBasic()
@@ -17,7 +22,7 @@ security = HTTPBasic()
     response_model=UserBaseSchema,
     status_code=status.HTTP_201_CREATED,
     summary='Регистрация пользователя',
-    description='Регистрация пользователю по обязательным полям',
+    description='Регистрация пользователя по обязательным полям',
     tags=['Страница регистрации'],
 )
 async def create_user(
@@ -27,25 +32,47 @@ async def create_user(
     """User registration endpoint by required fields."""
     request_email = await user_service.get(email=user_dto.email)
     if request_email:
-        raise AuthException()
+        raise AuthException(
+            message="User already exists",
+            status_code=status.HTTP_409_CONFLICT,
+        )
     user = await user_service.create(user_dto=user_dto)
     return user
 
 
 @router.get(
     path="/login/",
+    response_model=LoginUserResponseSchema,
     summary='Авторизация пользователя',
     description='Регистрация пользователя по логину и паролю',
     tags=['Основная страница', 'Авторизация пользователя'],
 )
-async def login_user():
+async def login_user(
+        user_dto: LoginUserSchema = Depends(),
+        user_service: AuthUserService = Depends(get_user_service),
+) -> LoginUserResponseSchema:
     """User login endpoint by email and password."""
-    # Get user by email -> {if len == 1 -> next, elas -> EXCEPTIOM}
-    # Check is_active -> {if True -> next, elas EXCEPTION_BLOCK}
-    # Check hashed password with db -> {if True -> next, else EXCEPTION_INVALID_PWD}
+    request_email = await user_service.get(email=user_dto.email)
+    if not request_email:
+        raise AuthException(
+            message="Incorrect email or password.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    if not verify_password(
+            user_dto.hashed_password,
+            request_email.hashed_password,
+    ):
+        raise AuthException(
+            message="Incorrect email or password.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    access_token = create_access_token(
+        data={'sub': request_email.email}
+    )
+    return LoginUserResponseSchema(access_token=access_token, refresh_token='12')
     # Create object history auth -> push history to DB
+
     # Return access and refresh tokens
-    pass
 
 
 @router.get(

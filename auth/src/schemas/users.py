@@ -14,6 +14,11 @@ class LoginUserSchema(UserBaseSchema):
     hashed_password: str
 
 
+class LoginUserResponseSchema(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
 class FullUserSchema(UserBaseSchema):
     user_name: str | None = Field(default=None)
     first_name: str | None = Field(default=None)
@@ -23,11 +28,3 @@ class FullUserSchema(UserBaseSchema):
 
 class CreateUserSchema(LoginUserSchema, FullUserSchema):
     pass
-
-
-class UserDataToken(UserBaseSchema):
-    id: UUID
-    role: RoleBaseSchema
-
-    class Config:
-        orm_mode = True

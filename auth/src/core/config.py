@@ -89,6 +89,14 @@ class BackendSettings(_BaseSettings):
         default=8000,
         description="Порт сервиса авторизации",
     )
+    auth_secret_key: str = Field(
+        default='123qwerty',
+        description='Секретный ключ для генерации токенов',
+    )
+    algorithm_auth: str = Field(
+        default='HS256',
+        description='Алгоритм шифрования токена',
+    )
 
 
 class Settings(CommonSettings):
