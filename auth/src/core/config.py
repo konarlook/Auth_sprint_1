@@ -93,6 +93,9 @@ class BackendSettings(_BaseSettings):
         default='123qwerty',
         description='Секретный ключ для генерации токенов',
     )
+    auth_refresh_token_lifetime: int = Field(
+        default='1'
+    )
     algorithm_auth: str = Field(
         default='HS256',
         description='Алгоритм шифрования токена',

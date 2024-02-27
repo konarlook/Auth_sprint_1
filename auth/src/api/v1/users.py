@@ -2,16 +2,18 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from redis.asyncio import Redis
 
 from schemas.users import (CreateUserSchema,
                            UserBaseSchema,
                            LoginUserResponseSchema,
                            LoginUserSchema,
-                           LoginUserResponseSchema,
-                           )
+                           LoginUserResponseSchema)
 from services.user_service import AuthUserService, get_user_service
 from helpers.exceptions import AuthException
-from helpers.password import verify_password, create_access_token
+from helpers.password import verify_password, create_token, create_refresh_token
+from db.redis import get_redis
+
 
 router = APIRouter(prefix='/auth', tags=['Auth', ])
 security = HTTPBasic()
@@ -50,6 +52,7 @@ async def create_user(
 async def login_user(
         user_dto: LoginUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service),
+        redis: Redis = Depends(get_redis)
 ) -> LoginUserResponseSchema:
     """User login endpoint by email and password."""
     request_email = await user_service.get(email=user_dto.email)
@@ -66,13 +69,20 @@ async def login_user(
             message="Incorrect email or password.",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    access_token = create_access_token(
+    access_token = await create_token(
         data={'sub': request_email.email}
     )
-    return LoginUserResponseSchema(access_token=access_token, refresh_token='12')
+    refresh_token = await create_refresh_token(
+        user_id=request_email.email,
+        redis=redis,
+    )
     # Create object history auth -> push history to DB
 
     # Return access and refresh tokens
+    return LoginUserResponseSchema(
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
 
 
 @router.get(

@@ -1,15 +1,9 @@
-from repositories.base import MixinCreateRepository
-
 import logging
 import json
-
 from redis import Redis
-
-from core.config import settings
+from repositories.base import MixinCreateRepository
 
 logger = logging.getLogger(__name__)
-
-LIFETIME = settings.redis.redis_time_save_cache
 
 
 class RedisRepository(MixinCreateRepository):
@@ -29,8 +23,8 @@ class RedisRepository(MixinCreateRepository):
             return None
         return json.loads(data)
 
-    async def create(self, key: str, value: dict):
+    async def create(self, key: str, value: str):
         try:
-            await self.connection.set(str(key), value, ex=LIFETIME)
+            await self.connection.set(str(key), value)
         except ConnectionError as e:
             logger.error(e)

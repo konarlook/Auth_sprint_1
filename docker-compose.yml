@@ -31,8 +31,11 @@ services:
 
   redis_auth:
     container_name: redis_auth
+    hostname: redis_auth
     image: redis:latest
     env_file: .env
+    ports:
+      - "6379:6379"
     restart: always
     volumes:
       - /redis_auth/dаta:/root/redis
@@ -93,8 +96,6 @@ services:
     image: redis:latest
     env_file: .env
     restart: always
-    expose:
-      - "${REDIS_PORT}"
     volumes:
       - /redis/dаta:/root/redis
       - /redis/redis.conf:/usr/local/etc/redis/redis.conf
