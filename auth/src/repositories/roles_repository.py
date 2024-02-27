@@ -1,6 +1,8 @@
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
+from db.sqlalchemy_db import get_db_session
 from models.auth_orm_models import RolesOrm, ActionsOrm, MixActionsOrm
 from repositories.sqlalchemy_repository import SQLAlchemyRepository
 from schemas.roles import RolesActionsSchema, RoleBaseSchema
@@ -46,3 +48,7 @@ class RolesRepository(SQLAlchemyRepository):
         except TypeError:
             result = None
         return result
+
+
+def get_roles_repository(session: AsyncSession = Depends(get_db_session)):
+    return RolesRepository(session=session)

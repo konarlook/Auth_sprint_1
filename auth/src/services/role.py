@@ -2,35 +2,41 @@ import uuid
 from functools import lru_cache
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.sqlalchemy_db import get_db_session
-from repositories.actions_repository import ActionsRepository
-from repositories.mixactions_repository import MixActionsRepository
-from repositories.roles_repository import RolesRepository
-from repositories.users_repository import UsersRepository
+from repositories.actions_repository import ActionsRepository, get_actions_repository
+from repositories.mixactions_repository import (
+    MixActionsRepository,
+    get_mix_actions_repository,
+)
+from repositories.roles_repository import RolesRepository, get_roles_repository
+from repositories.users_repository import UsersRepository, get_users_repository
 from schemas.roles import RolesActionsSchema, CreateRoleSchema, RoleBaseSchema
 
 
 class RoleService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
-        self.roles_repo: RolesRepository = RolesRepository(self.session)
-        self.users_repo: UsersRepository = UsersRepository(self.session)
-        self.actions_repo: ActionsRepository = ActionsRepository(self.session)
-        self.mixactions_repo: MixActionsRepository = MixActionsRepository(self.session)
+    def __init__(
+        self,
+        roles_repo: RolesRepository,
+        users_repo: UsersRepository,
+        actions_repo: ActionsRepository,
+        mixactions_repo: MixActionsRepository,
+    ):
+        self.roles_repo = roles_repo
+        self.users_repo = users_repo
+        self.actions_repo = actions_repo
+        self.mixactions_repo = mixactions_repo
 
     async def get_all_roles(self) -> list[RolesActionsSchema]:
         return await self.roles_repo.get_roles()
 
-    async def is_exist_role(self, name: str) -> bool:
+    async def get_role_by_name(self, name: str):
         role_data = await self.roles_repo.get_role_by_name(name=name)
         if not role_data:
             return None
         return role_data
 
     async def delete_role(self, name: str):
-        role_data = await self.is_exist_role(name=name)
+        role_data = await self.get_role_by_name(name=name)
         if not role_data:
             return None
         await self.roles_repo.delete(self.roles_repo._model.id, role_data.id)
@@ -48,7 +54,8 @@ class RoleService:
             is_true = True
         return is_true
 
-    async def create_role(self, role_data: CreateRoleSchema):
+    async def create_role(self, role_data: CreateRoleSchema) -> CreateRoleSchema:
+        # TODO(Mosyagingrigorii): Подумать, как обернуть в транзакцию
         role = RoleBaseSchema(role_name=role_data.role_name, comment=role_data.comment)
         await self.roles_repo.create(role)
         action_names = [i[0] for i in role_data.actions if i[-1]]
@@ -59,21 +66,36 @@ class RoleService:
         await self.mixactions_repo.set_actions_to_role(
             role_id=role.id, action_ids=roles_ids
         )
-        return True
+        return role_data
 
-    async def update_role(self, role_data):
-        role = RoleBaseSchema(role_name=role_data.role_name, comment=role_data.comment)
-        action_names = [i[0] for i in role_data.actions if i[-1]]
-        response_names = await self.actions_repo.get_actions_by_names(
-            action_names=action_names
-        )
-        roles_ids = [row.id for row in response_names]
-        self.mixactions_repo.set_actions_to_role(role_id=role.id, action_ids=roles_ids)
-        return True
+    async def update_role(self, role_data: CreateRoleSchema) -> CreateRoleSchema | None:
+        # TODO(Mosyagingrigorii): Подумать, как обернуть в транзакцию
+        try:
+            role = await self.get_role_by_name(name=role_data.role_name)
+            action_names = [i[0] for i in role_data.actions if i[-1]]
+            response_names = await self.actions_repo.get_actions_by_names(
+                action_names=action_names
+            )
+            roles_ids = [row.id for row in response_names]
+            await self.mixactions_repo.delete_actions_by_role(role_id=role.id)
+            await self.mixactions_repo.set_actions_to_role(
+                role_id=role.id, action_ids=roles_ids
+            )
+        except TypeError:
+            return None
+        return role_data
 
 
 @lru_cache()
 def get_role_service(
-    session: AsyncSession = Depends(get_db_session),
+    roles_repo: RolesRepository = Depends(get_roles_repository),
+    users_repo: UsersRepository = Depends(get_users_repository),
+    actions_repo: ActionsRepository = Depends(get_actions_repository),
+    mixactions_repo: MixActionsRepository = Depends(get_mix_actions_repository),
 ) -> RoleService:
-    return RoleService(session)
+    return RoleService(
+        roles_repo=roles_repo,
+        users_repo=users_repo,
+        actions_repo=actions_repo,
+        mixactions_repo=mixactions_repo,
+    )

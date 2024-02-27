@@ -1,6 +1,8 @@
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from db.sqlalchemy_db import get_db_session
 from repositories.sqlalchemy_repository import SQLAlchemyRepository
 from models.auth_orm_models import ActionsOrm
 
@@ -17,3 +19,7 @@ class ActionsRepository(SQLAlchemyRepository):
         )
         result = await self.read()
         return result
+
+
+def get_actions_repository(session: AsyncSession = Depends(get_db_session)):
+    return ActionsRepository(session=session)

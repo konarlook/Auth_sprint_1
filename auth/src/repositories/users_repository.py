@@ -1,8 +1,10 @@
 import uuid
 
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from db.sqlalchemy_db import get_db_session
 from models.auth_orm_models import UsersOrm, RolesOrm
 from repositories.sqlalchemy_repository import SQLAlchemyRepository
 from schemas.roles import UsersRolesSchema
@@ -28,3 +30,7 @@ class UsersRepository(SQLAlchemyRepository):
             update_data={"user_id": user_id, "role_id": role_id},
         )
         return True
+
+
+def get_users_repository(session: AsyncSession = Depends(get_db_session)):
+    return UsersRepository(session=session)

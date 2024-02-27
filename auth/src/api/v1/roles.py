@@ -20,12 +20,9 @@ async def create_role(
     query_params: CreateRoleSchema = Depends(),
     role_service: RoleService = Depends(get_role_service),
 ) -> CreateRoleSchema:
-    response = await role_service.create_role(query_params)
-    if not response:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="role don't create"
-        )
-    return response
+    # TODO(Mosyagingrigorii): Подумать над обработкой исключений
+    db_obj = await role_service.create_role(query_params)
+    return db_obj
 
 
 @router.get(
@@ -59,12 +56,12 @@ async def update_role(
     query_params: CreateRoleSchema = Depends(),
     role_service: RoleService = Depends(get_role_service),
 ) -> CreateRoleSchema:
-    response = await role_service.update_role(query_params)
-    if not response:
+    db_obj = await role_service.update_role(query_params)
+    if not db_obj:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="roles not found"
         )
-    return response
+    return db_obj
 
 
 @router.delete(
