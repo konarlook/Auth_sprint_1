@@ -1,11 +1,13 @@
 from datetime import timedelta, datetime
 from passlib.context import CryptContext
-from jose import JWSError, jwt
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import jwt
 
 from core.config import settings
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -18,11 +20,15 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
+    iatime = datetime.utcnow()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = iatime + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=30)
-    to_encode.update({"exp": expire})
+        expire = iatime + timedelta(minutes=30)
+    to_encode.update({
+        "iat": iatime,
+        "exp": expire,
+    })
     encoded_jwt = jwt.encode(
         to_encode,
         settings.backend.auth_secret_key,
