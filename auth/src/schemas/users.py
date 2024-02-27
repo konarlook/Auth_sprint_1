@@ -15,12 +15,10 @@ class LoginUserSchema(UserBaseSchema):
 
 
 class FullUserSchema(UserBaseSchema):
-    id: UUID = Field(default=uuid4())
     user_name: str | None = Field(default=None)
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
     phone_number: str | None = Field(default=None)
-    register_date: datetime | None = Field(default_factory=datetime.now)
 
 
 class CreateUserSchema(LoginUserSchema, FullUserSchema):
