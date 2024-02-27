@@ -5,7 +5,6 @@ from jose import jwt
 
 from core.config import settings
 
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -34,3 +33,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
         settings.backend.auth_secret_key,
         algorithm=settings.backend.algorithm_auth)
     return encoded_jwt
+
+
+async def get_current_user(token: str):
+    pass
