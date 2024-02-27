@@ -5,6 +5,7 @@ Revises: 390888ecf4d3
 Create Date: 2024-02-25 01:59:46.772739
 
 """
+import uuid
 from typing import Sequence, Union
 
 from alembic import op
@@ -24,74 +25,74 @@ def upgrade() -> None:
         table=MixActionsOrm.__table__,
         rows=[
             {
-                "id": 1,
+                "id": uuid.uuid4(),
                 "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
-                "action_id": 1,
+                "action_id": "bb29bca0-a549-4aa7-b75e-39d4ebf648a9",
             },
             {
-                "id": 2,
+                "id": uuid.uuid4(),
                 "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
-                "action_id": 2,
+                "action_id": "d4159fcc-6d65-4281-8303-c2c9cf969a6a",
             },
             {
-                "id": 3,
+                "id": uuid.uuid4(),
                 "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
-                "action_id": 3,
+                "action_id": "6571b7fc-c0b7-42a6-bd86-f673649d074f",
             },
             {
-                "id": 4,
+                "id": uuid.uuid4(),
                 "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
-                "action_id": 4,
+                "action_id": "b9702cdc-a388-4e3c-9176-5da40facc429",
             },
             {
-                "id": 5,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 1,
+                "action_id": "bb29bca0-a549-4aa7-b75e-39d4ebf648a9",
             },
             {
-                "id": 6,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 2,
+                "action_id": "d4159fcc-6d65-4281-8303-c2c9cf969a6a",
             },
             {
-                "id": 7,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 3,
+                "action_id": "6571b7fc-c0b7-42a6-bd86-f673649d074f",
             },
             {
-                "id": 8,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 5,
+                "action_id": "50c54f3c-2be3-4f0e-a9da-10089e668ac9",
             },
             {
-                "id": 9,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 6,
+                "action_id": "150c2c89-bc20-4eca-8f1e-1a2c9fef2d65",
             },
             {
-                "id": 10,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 7,
+                "action_id": "4705bbf9-ddf8-411d-970f-a5fe56911863",
             },
             {
-                "id": 11,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 8,
+                "action_id": "e03273a9-004c-47e8-9899-a07df741bcf9",
             },
             {
-                "id": 12,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 9,
+                "action_id": "73d169ee-59f5-44b2-8e5d-85dc8fd20bb4",
             },
             {
-                "id": 13,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 10,
+                "action_id": "4270b104-38c2-4591-a49b-e5663a970d99",
             },
             {
-                "id": 14,
+                "id": uuid.uuid4(),
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
-                "action_id": 11,
+                "action_id": "9e626c81-1dfd-43d5-87d5-26a35b748e95",
             },
         ],
     )

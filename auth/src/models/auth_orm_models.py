@@ -4,7 +4,7 @@ import datetime
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UniqueConstraint, ForeignKey
 
-from models.base import Base, str_50, str_256, intpk, uuidpk, datetime_at_utc
+from models.base import Base, str_50, str_256, uuidpk, datetime_at_utc
 
 
 class UsersOrm(Base):
@@ -21,7 +21,7 @@ class UsersOrm(Base):
 
 class RolesOrm(Base):
     __tablename__ = "roles"
-    __table_args__ = {"comment": "Таблица ролей"}
+    __table_args__ = (UniqueConstraint("role_name"), {"comment": "Таблица ролей"})
 
     id: Mapped[uuidpk]
     role_name: Mapped[str_50] = mapped_column(comment="Название роли")
@@ -34,20 +34,20 @@ class MixActionsOrm(Base):
     __tablename__ = "mix_actions"
     __table_args__ = {"comment": "Таблица привыязки действий к ролям"}
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     role_id: Mapped[uuid] = mapped_column(
         ForeignKey("roles.id", ondelete="CASCADE"), comment="ID роли"
     )
-    action_id: Mapped[int] = mapped_column(
+    action_id: Mapped[uuid] = mapped_column(
         ForeignKey("actions.id"), comment="ID действия"
     )
 
 
 class ActionsOrm(Base):
     __tablename__ = "actions"
-    __table_args__ = {"comment": "Таблица действий"}
+    __table_args__ = (UniqueConstraint("action_name"), {"comment": "Таблица действий"})
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     action_name: Mapped[str_50] = mapped_column(comment="Название действия")
     comment: Mapped[str_256] = mapped_column(
         comment="Комментарий к действию", nullable=True
