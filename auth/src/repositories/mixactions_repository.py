@@ -20,4 +20,9 @@ class MixActionsRepository(SQLAlchemyRepository):
             mix_actions_model = MixActionSchema(role_id=role_id, action_id=action_id)
             await self.insert(dict(mix_actions_model))
 
-    a = 1
+    async def update_actions_to_role(
+        self, role_id: uuid.UUID, action_ids: list[uuid.UUID]
+    ):
+        for action_id in action_ids:
+            mix_actions_model = MixActionSchema(role_id=role_id, action_id=action_id)
+            await self.insert(dict(mix_actions_model))

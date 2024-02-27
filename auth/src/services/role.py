@@ -61,6 +61,16 @@ class RoleService:
         )
         return True
 
+    async def update_role(self, role_data):
+        role = RoleBaseSchema(role_name=role_data.role_name, comment=role_data.comment)
+        action_names = [i[0] for i in role_data.actions if i[-1]]
+        response_names = await self.actions_repo.get_actions_by_names(
+            action_names=action_names
+        )
+        roles_ids = [row.id for row in response_names]
+        self.mixactions_repo.set_actions_to_role(role_id=role.id, action_ids=roles_ids)
+        return True
+
 
 @lru_cache()
 def get_role_service(

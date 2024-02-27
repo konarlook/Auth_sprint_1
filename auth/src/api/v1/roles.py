@@ -30,8 +30,14 @@ async def get_roles(role_service: RoleService = Depends(get_role_service)):
 
 
 @router.post("/roles/update", tags=["roles"])
-async def update_role():
-    pass
+async def update_role(
+    query_params: CreateRoleSchema = Depends(),
+    role_service: RoleService = Depends(get_role_service),
+):
+    response = await role_service.update_role(query_params)
+    if not response:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="roles not found")
+    return response
 
 
 @router.post("/roles/delete/{name}", tags=["roles"])
