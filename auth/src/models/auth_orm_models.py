@@ -14,14 +14,16 @@ class UsersOrm(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_data.id"), primary_key=True, comment="ID пользователя"
     )
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), comment="ID роли")
+    role_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("roles.id"), comment="ID роли"
+    )
 
 
 class RolesOrm(Base):
     __tablename__ = "roles"
     __table_args__ = {"comment": "Таблица ролей"}
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     role_name: Mapped[str_50] = mapped_column(comment="Название роли")
     comment: Mapped[str_256] = mapped_column(
         comment="Комментарий к роли", nullable=True
@@ -33,7 +35,7 @@ class MixActionsOrm(Base):
     __table_args__ = {"comment": "Таблица привыязки действий к ролям"}
 
     id: Mapped[intpk]
-    role_id: Mapped[int] = mapped_column(
+    role_id: Mapped[uuid] = mapped_column(
         ForeignKey("roles.id", ondelete="CASCADE"), comment="ID роли"
     )
     action_id: Mapped[int] = mapped_column(

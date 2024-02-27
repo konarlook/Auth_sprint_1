@@ -40,7 +40,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "roles",
-        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
             "role_name", sa.String(length=50), nullable=False, comment="Название роли"
         ),
@@ -131,7 +131,7 @@ def upgrade() -> None:
     op.create_table(
         "mix_actions",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("role_id", sa.Integer(), nullable=False, comment="ID роли"),
+        sa.Column("role_id", sa.UUID(), nullable=False, comment="ID роли"),
         sa.Column("action_id", sa.Integer(), nullable=False, comment="ID действия"),
         sa.ForeignKeyConstraint(
             ["action_id"],
@@ -147,7 +147,7 @@ def upgrade() -> None:
     op.create_table(
         "users",
         sa.Column("user_id", sa.Uuid(), nullable=False, comment="ID пользователя"),
-        sa.Column("role_id", sa.Integer(), nullable=False, comment="ID роли"),
+        sa.Column("role_id", sa.UUID(), nullable=False, comment="ID роли"),
         sa.ForeignKeyConstraint(
             ["role_id"],
             ["roles.id"],

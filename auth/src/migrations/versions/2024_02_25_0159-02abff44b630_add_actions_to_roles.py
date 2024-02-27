@@ -23,20 +23,76 @@ def upgrade() -> None:
     op.bulk_insert(
         table=MixActionsOrm.__table__,
         rows=[
-            {"id": 1, "role_id": 1, "action_id": 1},
-            {"id": 2, "role_id": 1, "action_id": 2},
-            {"id": 3, "role_id": 1, "action_id": 3},
-            {"id": 4, "role_id": 1, "action_id": 4},
-            {"id": 5, "role_id": 2, "action_id": 1},
-            {"id": 6, "role_id": 2, "action_id": 2},
-            {"id": 7, "role_id": 2, "action_id": 3},
-            {"id": 8, "role_id": 2, "action_id": 5},
-            {"id": 9, "role_id": 2, "action_id": 6},
-            {"id": 10, "role_id": 2, "action_id": 7},
-            {"id": 11, "role_id": 2, "action_id": 8},
-            {"id": 12, "role_id": 2, "action_id": 9},
-            {"id": 13, "role_id": 2, "action_id": 10},
-            {"id": 14, "role_id": 2, "action_id": 11},
+            {
+                "id": 1,
+                "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
+                "action_id": 1,
+            },
+            {
+                "id": 2,
+                "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
+                "action_id": 2,
+            },
+            {
+                "id": 3,
+                "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
+                "action_id": 3,
+            },
+            {
+                "id": 4,
+                "role_id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
+                "action_id": 4,
+            },
+            {
+                "id": 5,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 1,
+            },
+            {
+                "id": 6,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 2,
+            },
+            {
+                "id": 7,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 3,
+            },
+            {
+                "id": 8,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 5,
+            },
+            {
+                "id": 9,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 6,
+            },
+            {
+                "id": 10,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 7,
+            },
+            {
+                "id": 11,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 8,
+            },
+            {
+                "id": 12,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 9,
+            },
+            {
+                "id": 13,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 10,
+            },
+            {
+                "id": 14,
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": 11,
+            },
         ],
     )
     # ### end Alembic commands ###
