@@ -31,14 +31,16 @@ class AuthHistoryRepository(SQLAlchemyRepository):
         return result
 
     async def add_login_history(self, user_id: uuid.UUID, device_id: str):
+        session = uuid.uuid4()
         auth_history = HistoryBase(
-            id=uuid.uuid4(),
+            id=session,
             user_id=user_id,
             dt_login=datetime.datetime.now(),
             dt_logout=None,
             device_id=device_id,
         )
-        return await self.create(auth_history.dict())
+        await self.create(auth_history.dict())
+        return session
 
     async def add_logout_history(self, session_id: uuid.UUID):
         update_data = {"dt_logout": datetime.datetime.now()}

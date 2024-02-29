@@ -14,16 +14,17 @@ class HistoryService(BaseService):
         pass
 
     async def create(self, user_id, device_id) -> None:
-        await self.database_client.add_login_history(
+        _session = await self.database_client.add_login_history(
             user_id=user_id,
             device_id=device_id,
         )
+        return _session
 
     async def delete(self, *args, **kwargs):
         pass
 
     async def update(self, *args, **kwargs):
-        pass
+        await self.database_client.add_logout_history()
 
 
 def get_history_service(

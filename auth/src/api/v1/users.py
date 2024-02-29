@@ -64,11 +64,14 @@ async def login_user(
         'access_token', tokens['access_token'], httponly=True, max_age=20)
     response.set_cookie(
         'refresh_token', tokens['refresh_token'], httponly=True, max_age=40)
-    await history_service.create(
+    session = await history_service.create(
         user_id=user_dto.id,
         device_id=request.headers.get('User-Agent'),
     )
-    return {"detail": "Successfully login"}
+    response.set_cookie(
+        'session_id', session, httponly=True,
+    )
+    return {"detail": session}
 
 
 @router.get(
