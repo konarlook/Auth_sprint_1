@@ -1,7 +1,6 @@
-import uuid
+from fastapi import APIRouter, Depends, status, Path
 
-from fastapi import APIRouter, Depends, status
-
+from schemas import roles
 from services.role_service import AuthRoleService, get_role_service
 
 router = APIRouter()
@@ -15,6 +14,7 @@ router = APIRouter()
     summary="Создать роль",
 )
 async def create_role(
+    role_dto: roles.RoleActionDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
 ):
     pass
@@ -22,6 +22,7 @@ async def create_role(
 
 @router.get(
     path="/roles/read",
+    response_model=list[roles.RoleActionSchema],
     status_code=status.HTTP_200_OK,
     tags=["roles"],
     description="Получить существующие роли с детализацией по разрешенным действиям",
@@ -29,7 +30,7 @@ async def create_role(
 )
 async def get_roles(
     role_service: AuthRoleService = Depends(get_role_service),
-):
+) -> list[roles.RoleActionSchema]:
     pass
 
 
@@ -41,6 +42,7 @@ async def get_roles(
     summary="Изменить существующую роль",
 )
 async def update_role(
+    role_dto: roles.RoleActionDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
 ):
     pass
@@ -54,7 +56,8 @@ async def update_role(
     summary="Изменить существующую роль",
 )
 async def delete_role(
-    name: str, role_service: AuthRoleService = Depends(get_role_service)
+    name: str = Path(max_length=50, title="Имя роли"),
+    role_service: AuthRoleService = Depends(get_role_service),
 ):
     pass
 
@@ -67,8 +70,7 @@ async def delete_role(
     summary="Назначить роль пользователю",
 )
 async def set_role(
-    user_id: uuid.UUID,
-    role_name: str,
+    user_dto: roles.UserRoleDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
 ):
     pass
@@ -82,8 +84,7 @@ async def set_role(
     summary="Верифицировать роль пользователя",
 )
 async def verify_role(
-    user_id: uuid.UUID,
-    role_name: str,
+    user_dto: roles.UserRoleDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
 ):
     pass
