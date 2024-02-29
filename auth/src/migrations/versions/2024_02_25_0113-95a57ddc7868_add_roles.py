@@ -23,9 +23,13 @@ def upgrade() -> None:
     op.bulk_insert(
         table=RolesOrm.__table__,
         rows=[
-            {"id": 1, "role_name": "DefaultUser", "comment": "Actions with movies"},
             {
-                "id": 2,
+                "id": "d91454c4-a706-4d88-8b94-e843ff5021cb",
+                "role_name": "DefaultUser",
+                "comment": "Actions with movies",
+            },
+            {
+                "id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
                 "role_name": "Admin",
                 "comment": "Actions with movies, roles, users",
             },

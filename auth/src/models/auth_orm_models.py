@@ -4,7 +4,7 @@ import datetime
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UniqueConstraint, ForeignKey
 
-from models.base import Base, str_50, str_256, intpk, uuidpk, datetime_at_utc
+from models.base import Base, str_50, str_256, uuidpk, datetime_at_utc
 
 
 class UsersOrm(Base):
@@ -14,14 +14,16 @@ class UsersOrm(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_data.id"), primary_key=True, comment="ID пользователя"
     )
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), comment="ID роли")
+    role_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("roles.id"), comment="ID роли"
+    )
 
 
 class RolesOrm(Base):
     __tablename__ = "roles"
-    __table_args__ = {"comment": "Таблица ролей"}
+    __table_args__ = (UniqueConstraint("role_name"), {"comment": "Таблица ролей"})
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     role_name: Mapped[str_50] = mapped_column(comment="Название роли")
     comment: Mapped[str_256] = mapped_column(
         comment="Комментарий к роли", nullable=True
@@ -32,18 +34,20 @@ class MixActionsOrm(Base):
     __tablename__ = "mix_actions"
     __table_args__ = {"comment": "Таблица привыязки действий к ролям"}
 
-    id: Mapped[intpk]
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), comment="ID роли")
-    action_id: Mapped[int] = mapped_column(
+    id: Mapped[uuidpk]
+    role_id: Mapped[uuid] = mapped_column(
+        ForeignKey("roles.id", ondelete="CASCADE"), comment="ID роли"
+    )
+    action_id: Mapped[uuid] = mapped_column(
         ForeignKey("actions.id"), comment="ID действия"
     )
 
 
 class ActionsOrm(Base):
     __tablename__ = "actions"
-    __table_args__ = {"comment": "Таблица действий"}
+    __table_args__ = (UniqueConstraint("action_name"), {"comment": "Таблица действий"})
 
-    id: Mapped[intpk]
+    id: Mapped[uuidpk]
     action_name: Mapped[str_50] = mapped_column(comment="Название действия")
     comment: Mapped[str_256] = mapped_column(
         comment="Комментарий к действию", nullable=True
@@ -75,7 +79,7 @@ class UserDataOrm(Base):
         comment="Электронная почта пользователя", nullable=False, unique=True
     )
     register_date: Mapped[datetime_at_utc] = mapped_column(
-        comment="Дата регистрации пользователя", nullable=True
+        comment="Дата регистрации пользователя", nullable=False
     )
     phone_number: Mapped[str_50] = mapped_column(
         comment="Номер телефона пользователя", nullable=True
