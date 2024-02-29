@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -10,7 +9,7 @@ from redis.asyncio import Redis
 
 from core.config import settings
 from core.logger import LOGGING
-from api.v1 import users
+from api.v1 import users, roles
 
 load_dotenv()
 
@@ -38,12 +37,14 @@ app = FastAPI(
 )
 
 app.include_router(router=users.router)
+app.include_router(router=roles.router)
 
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
-        host="0.0.0.0", #settings.backend.backend_host,
-        port=8888, #settings.backend.backend_port,
+        host="0.0.0.0",  # settings.backend.backend_host,
+        port=8888,  # settings.backend.backend_port,
+        reload=True,
         log_config=LOGGING,
         log_level=logging.DEBUG,
     )
