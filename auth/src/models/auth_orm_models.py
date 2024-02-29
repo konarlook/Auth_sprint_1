@@ -75,7 +75,7 @@ class UserDataOrm(Base):
         comment="Электронная почта пользователя", nullable=False, unique=True
     )
     register_date: Mapped[datetime_at_utc] = mapped_column(
-        comment="Дата регистрации пользователя", nullable=False
+        comment="Дата регистрации пользователя", nullable=True
     )
     phone_number: Mapped[str_50] = mapped_column(
         comment="Номер телефона пользователя", nullable=True

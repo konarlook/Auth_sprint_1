@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -9,6 +10,7 @@ from redis.asyncio import Redis
 
 from core.config import settings
 from core.logger import LOGGING
+from api.v1 import users
 
 load_dotenv()
 
@@ -28,11 +30,14 @@ async def lifespan(application: FastAPI):
 app = FastAPI(
     title=settings.service_name,
     description="Сервис авторизации",
-    docs_url="/api/description",
+    docs_url="/auth/api/openapi",
+    openapi_url="/auth/api/openapi.json",
     default_response_class=ORJSONResponse,
     version="1.0.0",
     lifespan=lifespan,
 )
+
+app.include_router(router=users.router)
 
 
 if __name__ == "__main__":

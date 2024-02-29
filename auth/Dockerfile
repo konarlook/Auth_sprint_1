@@ -15,7 +15,6 @@ RUN apt-get update \
 
 COPY . .
 
-ENTRYPOINT ["gunicorn", \
-            "--bind", "0.0.0.0:8000", \
-            "--chdir", "/opt/src/", \
-            "main:app"]
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["/opt/entrypoint.sh"]
