@@ -42,8 +42,8 @@ app.include_router(router=users.router)
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
-        host=settings.backend.backend_host,
-        port=settings.backend.backend_port,
+        host="0.0.0.0", #settings.backend.backend_host,
+        port=8888, #settings.backend.backend_port,
         log_config=LOGGING,
         log_level=logging.DEBUG,
     )

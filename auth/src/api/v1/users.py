@@ -1,19 +1,25 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBasic
 from redis.asyncio import Redis
 
 from schemas.users import (CreateUserSchema,
                            UserBaseSchema,
                            LoginUserResponseSchema,
                            LoginUserSchema,
-                           LoginUserResponseSchema)
+                           LoginUserResponseSchema,
+                           MainInfoUserSchema,
+                           RefreshTokenUserSchema,
+                           ChangePasswordSchema)
 from services.user_service import AuthUserService, get_user_service
 from helpers.exceptions import AuthException
-from helpers.password import verify_password, create_token, create_refresh_token
+from helpers.password import (verify_password,
+                              create_token,
+                              create_refresh_token,
+                              check_refresh_token,
+                              create_tokens,
+                              delete_refresh_token,
+                              decode_token)
 from db.redis import get_redis
-
 
 router = APIRouter(prefix='/auth', tags=['Auth', ])
 security = HTTPBasic()
@@ -55,50 +61,40 @@ async def login_user(
         redis: Redis = Depends(get_redis)
 ) -> LoginUserResponseSchema:
     """User login endpoint by email and password."""
-    request_email = await user_service.get(email=user_dto.email)
-    if not request_email:
+    response = await user_service.check_user(user_dto)
+    if not response:
         raise AuthException(
             message="Incorrect email or password.",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    if not verify_password(
-            user_dto.hashed_password,
-            request_email.hashed_password,
-    ):
-        raise AuthException(
-            message="Incorrect email or password.",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-    access_token = await create_token(
-        data={'sub': request_email.email}
-    )
-    refresh_token = await create_refresh_token(
-        user_id=request_email.email,
-        redis=redis,
-    )
-    # Create object history auth -> push history to DB
-
-    # Return access and refresh tokens
-    return LoginUserResponseSchema(
-        access_token=access_token,
-        refresh_token=refresh_token,
-    )
+    tokens = await create_tokens(response.id, redis)
+    return LoginUserResponseSchema(**tokens)
 
 
 @router.get(
-    path='/refresh_token/',
+    path='/refresh/',
+    response_model=LoginUserResponseSchema,
     summary='Обновления refresh token',
     description='Получение новых access token и refresh token',
     tags=['Обновление токена'],
 )
 async def refresh_token(
-) -> dict[str, str]:
+        refresh_info: RefreshTokenUserSchema = Depends(),
+        redis: Redis = Depends(get_redis),
+) -> LoginUserResponseSchema:
     """Get new access and refresh tokens."""
-    # Refresh JWT-token
-    # Revoke both tokens to new Refresh token
-    # Push old token to Redis deactivate token repository
-    # Get dict with new access and refresh tokens
-    pass
+    if not await check_refresh_token(
+            refresh_info.refresh_token,
+            redis,
+    ):
+        raise AuthException(
+            message="Incorrect token.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    response = await decode_token(refresh_info.refresh_token)
+    _new_tokens = await create_tokens(response['user_id'], redis)
+    await delete_refresh_token(refresh_info.refresh_token, redis)
+    return LoginUserResponseSchema(**_new_tokens)
 
 
 @router.get(
@@ -108,26 +104,9 @@ async def refresh_token(
     tags=['Logout', ],
 )
 async def logout_user(
-        credentials: Annotated[HTTPBasicCredentials, Depends(security)]
-):
+        refresh_info: RefreshTokenUserSchema = Depends(),
+        redis: Redis = Depends(get_redis),
+) -> dict:
     """Logout endpoint by access token."""
-    # Refresh JWT-token
-    # Revoke both tokens to new Refresh token
-    # Push old token to Redis deactivate token repository
-    pass
-
-
-@router.get(
-    path='/change_pwd/',
-)
-async def change_password(
-
-):
-    """Change password from old to new."""
-    # Get user by email -> always True
-    # Hashed old password
-    # Check hash password with db -> {if True -> next, else -> EXCEPTION}
-    # Hashed new password (feature: validate password)
-    # Push new password to database
-
-    pass
+    await delete_refresh_token(refresh_info.refresh_token, redis)
+    return {'detail': 'logout is successfully'}

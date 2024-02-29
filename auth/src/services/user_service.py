@@ -7,9 +7,6 @@ from schemas.users import UserBaseSchema
 from helpers.password import verify_password, get_password_hash
 
 
-# from repositories.user_data_repository
-
-
 class AuthUserService(BaseService):
     def __init__(self, database_client: UserDataRepository):
         self.database_client = database_client
@@ -31,6 +28,17 @@ class AuthUserService(BaseService):
     async def update(self):
         """Update user information."""
         pass
+
+    async def check_user(self, user_info):
+        response = await self.get(email=user_info.email)
+        if not response:
+            return None
+        if not verify_password(
+                user_info.hashed_password,
+                response.hashed_password,
+        ):
+            return None
+        return response
 
 
 def get_user_service(
