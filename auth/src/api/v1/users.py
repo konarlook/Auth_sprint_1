@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response, Cookie
 from fastapi.security import HTTPBasic
 from redis.asyncio import Redis
 
@@ -37,51 +37,60 @@ async def create_user(
 
 @router.get(
     path="/login/",
-    response_model=users.LoginUserResponseSchema,
     summary='Авторизация пользователя',
     description='Регистрация пользователя по логину и паролю',
     tags=['Основная страница', 'Авторизация пользователя'],
 )
 async def login_user(
+        response: Response,
         user_dto: users.LoginUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service),
-        redis: Redis = Depends(get_redis)
-) -> users.LoginUserResponseSchema:
+        redis: Redis = Depends(get_redis),
+
+) -> dict:
     """User login endpoint by email and password."""
-    response = await user_service.check_user(user_dto)
-    if not response:
+    user_dto = await user_service.check_user(user_dto)
+    if not user_dto:
         raise AuthException(
             message="Incorrect email or password.",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    tokens = await password.create_tokens(response.id, redis)
-    return users.LoginUserResponseSchema(**tokens)
+    tokens = await password.create_tokens(user_dto.id, redis)
+    response.set_cookie(
+        'access_token', tokens['access_token'], httponly=True, max_age=20)
+    response.set_cookie(
+        'refresh_token', tokens['refresh_token'], httponly=True, max_age=40)
+    return {"detail": "Successfully login"}
 
 
 @router.get(
     path='/refresh/',
-    response_model=users.LoginUserResponseSchema,
     summary='Обновления refresh token',
     description='Получение новых access token и refresh token',
     tags=['Обновление токена'],
 )
 async def refresh_token(
-        refresh_info: users.RefreshTokenUserSchema = Depends(),
+        response: Response,
+        refresh_token: str = Cookie(None),
         redis: Redis = Depends(get_redis),
-) -> users.LoginUserResponseSchema:
+) -> dict:
     """Get new access and refresh tokens."""
     if not await password.check_refresh_token(
-            refresh_info.refresh_token,
+            refresh_token,
             redis,
     ):
         raise AuthException(
             message="Incorrect token.",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    response = await password.decode_token(refresh_info.refresh_token)
-    _new_tokens = await password.create_tokens(response['user_id'], redis)
-    await password.delete_refresh_token(refresh_info.refresh_token, redis)
-    return users.LoginUserResponseSchema(**_new_tokens)
+    user_info = await password.decode_token(refresh_token)
+    _new_tokens = await password.create_tokens(user_info, redis)
+    await password.delete_refresh_token(refresh_token, redis)
+    response.set_cookie(
+        'access_token', _new_tokens['access_token'], httponly=True, max_age=20)
+    response.set_cookie(
+        'refresh_token', _new_tokens['refresh_token'], httponly=True, max_age=40)
+    return {"detail": "Successfully refresh"}
 
 
 @router.get(
@@ -91,9 +100,12 @@ async def refresh_token(
     tags=['Logout', ],
 )
 async def logout_user(
-        refresh_info: users.RefreshTokenUserSchema = Depends(),
+        response: Response,
+        refresh_token: str = Cookie(None),
         redis: Redis = Depends(get_redis),
 ) -> dict:
     """Logout endpoint by access token."""
-    await password.delete_refresh_token(refresh_info.refresh_token, redis)
+    await password.delete_refresh_token(refresh_token, redis)
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
     return {'detail': 'logout is successfully'}
