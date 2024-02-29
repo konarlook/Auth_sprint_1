@@ -1,12 +1,9 @@
-from uuid import UUID, uuid4
-from datetime import datetime
-
-from pydantic import BaseModel, Field, EmailStr
-
-from schemas.roles import RoleBaseSchema
+from uuid import UUID
+from pydantic import Field, EmailStr
+from .base import BaseSchema
 
 
-class UserBaseSchema(BaseModel):
+class UserBaseSchema(BaseSchema):
     email: EmailStr
 
 
@@ -14,9 +11,16 @@ class LoginUserSchema(UserBaseSchema):
     hashed_password: str
 
 
-class LoginUserResponseSchema(BaseModel):
-    access_token: str
+class ChangePasswordSchema(LoginUserSchema):
+    new_password: str
+
+
+class RefreshTokenUserSchema(BaseSchema):
     refresh_token: str
+
+
+class LoginUserResponseSchema(RefreshTokenUserSchema):
+    access_token: str
 
 
 class FullUserSchema(UserBaseSchema):
@@ -27,4 +31,12 @@ class FullUserSchema(UserBaseSchema):
 
 
 class CreateUserSchema(LoginUserSchema, FullUserSchema):
+    pass
+
+
+class MainInfoUserSchema(LoginUserSchema):
+    id: UUID
+
+
+class FullInfoUserSchema(CreateUserSchema, MainInfoUserSchema):
     pass

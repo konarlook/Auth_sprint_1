@@ -1,34 +1,29 @@
-from typing import Annotated
+from fastapi import APIRouter, Depends, status, Response, Cookie
+from fastapi.security import HTTPBasic
+from redis.asyncio import Redis
 
-from fastapi import APIRouter, Depends, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-
-from schemas.users import (CreateUserSchema,
-                           UserBaseSchema,
-                           LoginUserResponseSchema,
-                           LoginUserSchema,
-                           LoginUserResponseSchema,
-                           )
+from schemas import users
 from services.user_service import AuthUserService, get_user_service
 from helpers.exceptions import AuthException
-from helpers.password import verify_password, create_access_token
+from helpers import password
+from db.redis import get_redis
 
-router = APIRouter(prefix='/auth', tags=['Auth', ])
+router = APIRouter(prefix='/auth', tags=['Auth'])
 security = HTTPBasic()
 
 
 @router.get(
     path="/signup/",
-    response_model=UserBaseSchema,
+    response_model=users.UserBaseSchema,
     status_code=status.HTTP_201_CREATED,
     summary='Регистрация пользователя',
     description='Регистрация пользователя по обязательным полям',
     tags=['Страница регистрации'],
 )
 async def create_user(
-        user_dto: CreateUserSchema = Depends(),
+        user_dto: users.CreateUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service)
-) -> UserBaseSchema:
+) -> users.UserBaseSchema:
     """User registration endpoint by required fields."""
     request_email = await user_service.get(email=user_dto.email)
     if request_email:
@@ -42,53 +37,60 @@ async def create_user(
 
 @router.get(
     path="/login/",
-    response_model=LoginUserResponseSchema,
     summary='Авторизация пользователя',
     description='Регистрация пользователя по логину и паролю',
     tags=['Основная страница', 'Авторизация пользователя'],
 )
 async def login_user(
-        user_dto: LoginUserSchema = Depends(),
+        response: Response,
+        user_dto: users.LoginUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service),
-) -> LoginUserResponseSchema:
-    """User login endpoint by email and password."""
-    request_email = await user_service.get(email=user_dto.email)
-    if not request_email:
-        raise AuthException(
-            message="Incorrect email or password.",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-    if not verify_password(
-            user_dto.hashed_password,
-            request_email.hashed_password,
-    ):
-        raise AuthException(
-            message="Incorrect email or password.",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-    access_token = create_access_token(
-        data={'sub': request_email.email}
-    )
-    return LoginUserResponseSchema(access_token=access_token, refresh_token='12')
-    # Create object history auth -> push history to DB
+        redis: Redis = Depends(get_redis),
 
-    # Return access and refresh tokens
+) -> dict:
+    """User login endpoint by email and password."""
+    user_dto = await user_service.check_user(user_dto)
+    if not user_dto:
+        raise AuthException(
+            message="Incorrect email or password.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    tokens = await password.create_tokens(user_dto.id, redis)
+    response.set_cookie(
+        'access_token', tokens['access_token'], httponly=True, max_age=20)
+    response.set_cookie(
+        'refresh_token', tokens['refresh_token'], httponly=True, max_age=40)
+    return {"detail": "Successfully login"}
 
 
 @router.get(
-    path='/refresh_token/',
+    path='/refresh/',
     summary='Обновления refresh token',
     description='Получение новых access token и refresh token',
     tags=['Обновление токена'],
 )
 async def refresh_token(
-) -> dict[str, str]:
+        response: Response,
+        refresh_token: str = Cookie(None),
+        redis: Redis = Depends(get_redis),
+) -> dict:
     """Get new access and refresh tokens."""
-    # Refresh JWT-token
-    # Revoke both tokens to new Refresh token
-    # Push old token to Redis deactivate token repository
-    # Get dict with new access and refresh tokens
-    pass
+    if not await password.check_refresh_token(
+            refresh_token,
+            redis,
+    ):
+        raise AuthException(
+            message="Incorrect token.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    user_info = await password.decode_token(refresh_token)
+    _new_tokens = await password.create_tokens(user_info, redis)
+    await password.delete_refresh_token(refresh_token, redis)
+    response.set_cookie(
+        'access_token', _new_tokens['access_token'], httponly=True, max_age=20)
+    response.set_cookie(
+        'refresh_token', _new_tokens['refresh_token'], httponly=True, max_age=40)
+    return {"detail": "Successfully refresh"}
 
 
 @router.get(
@@ -98,26 +100,12 @@ async def refresh_token(
     tags=['Logout', ],
 )
 async def logout_user(
-        credentials: Annotated[HTTPBasicCredentials, Depends(security)]
-):
+        response: Response,
+        refresh_token: str = Cookie(None),
+        redis: Redis = Depends(get_redis),
+) -> dict:
     """Logout endpoint by access token."""
-    # Refresh JWT-token
-    # Revoke both tokens to new Refresh token
-    # Push old token to Redis deactivate token repository
-    pass
-
-
-@router.get(
-    path='/change_pwd/',
-)
-async def change_password(
-
-):
-    """Change password from old to new."""
-    # Get user by email -> always True
-    # Hashed old password
-    # Check hash password with db -> {if True -> next, else -> EXCEPTION}
-    # Hashed new password (feature: validate password)
-    # Push new password to database
-
-    pass
+    await password.delete_refresh_token(refresh_token, redis)
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
+    return {'detail': 'logout is successfully'}

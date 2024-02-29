@@ -58,23 +58,23 @@ class PostgresSettings(_BaseSettings):
 
 
 class RedisSettings(_BaseSettings):
-    redis_host: str = Field(
+    auth_redis_host: str = Field(
         default='redis_auth',
         description='Адрес хоста Redis для модуля авторизации',
     )
-    redis_port: int = Field(
+    auth_redis_port: int = Field(
         default=6379,
         description='Порт Redis для сервиса авторизации',
     )
-    redis_database: str = Field(
+    auth_redis_database: str = Field(
         default='0',
         description='База данных для хранения токенов',
     )
-    redis_password: str = Field(
+    auth_redis_password: str = Field(
         default='auth_pass',
         description='Пароль от Redis',
     )
-    redis_time: int = Field(
+    auth_redis_time: int = Field(
         default=3600,
         description='Время хранения токенов',
     )
@@ -92,6 +92,9 @@ class BackendSettings(_BaseSettings):
     auth_secret_key: str = Field(
         default='123qwerty',
         description='Секретный ключ для генерации токенов',
+    )
+    auth_refresh_token_lifetime: int = Field(
+        default='1'
     )
     algorithm_auth: str = Field(
         default='HS256',
