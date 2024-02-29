@@ -19,9 +19,9 @@ load_dotenv()
 async def lifespan(application: FastAPI):
     """Lifespan for startup and shutdown Redis"""
     _redis = Redis(
-        host=settings.redis.redis_host,
-        port=settings.redis.redis_port,
-        db=settings.redis.redis_database,
+        host=settings.redis.auth_redis_host,
+        port=settings.redis.auth_redis_port,
+        db=settings.redis.auth_redis_database,
     )
     yield
     await _redis.close()
