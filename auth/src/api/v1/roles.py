@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, status, Path
+from fastapi import APIRouter, Depends, status, Path, Response
 
+from helpers.exceptions import AuthRoleNotVerifyException
 from schemas import roles
 from services.role_service import AuthRoleService, get_role_service
 
@@ -86,5 +87,9 @@ async def set_role(
 async def verify_role(
     user_dto: roles.UserRoleDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
-):
-    pass
+) -> Response:
+    # TODO(MosyaginGrigorii): Добавить проверку на админскую роль
+    response = await role_service.verify(user_role=user_dto)
+    if not response:
+        raise AuthRoleNotVerifyException()
+    return Response(status_code=status.HTTP_200_OK)

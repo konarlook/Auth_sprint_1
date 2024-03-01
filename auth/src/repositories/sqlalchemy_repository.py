@@ -1,3 +1,4 @@
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Select, Update, update
 from repositories.base import (
@@ -33,11 +34,14 @@ class SQLAlchemyRepository(
 
     async def read_one(self):
         try:
-            result = await self.session.execute(self._statement)
+            buff_result = await self.session.execute(self._statement)
+            result = buff_result.scalars().one()
+        except NoResultFound:
+            result = None
         finally:
             await self.session.close()
             self.reset_statement()
-        return result.scalars().one()
+        return result
 
     async def delete(self):
         return  # TODO(MosyaginGrigorii)

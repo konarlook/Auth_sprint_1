@@ -1,9 +1,16 @@
-from abc import ABC, abstractproperty
-
 from fastapi import status
+from fastapi import HTTPException
 
 
 class AuthException(Exception):
     def __init__(self, message: str, status_code=status.HTTP_400_BAD_REQUEST):
         self.message = message
         self.status = status_code
+
+
+class AuthRoleNotVerifyException(HTTPException):
+    def __init__(
+        self, detail: str = "Role not verify", status_code=status.HTTP_409_CONFLICT
+    ):
+        self.detail = detail
+        self.status_code = status_code

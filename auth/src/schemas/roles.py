@@ -1,10 +1,10 @@
-from uuid import UUID
+import uuid
 
 from pydantic import BaseModel, Field
 
 
 class MixinId(BaseModel):
-    id: UUID
+    id: uuid.UUID = Field(title="ID", default_factory=uuid.uuid4)
 
 
 class RoleSchemaDto(BaseModel):
@@ -18,12 +18,12 @@ class ActionSchema(BaseModel):
 
 
 class UserRoleSchema(BaseModel):
-    user_id: UUID = Field(title="ID пользователя")
-    role_id: UUID = Field(title="ID роли")
+    user_id: uuid.UUID = Field(title="ID пользователя")
+    role_id: uuid.UUID = Field(title="ID роли")
 
 
 class UserRoleDto(BaseModel):
-    user_id: UUID = Field(title="ID пользователя")
+    user_id: uuid.UUID = Field(title="ID пользователя")
     role_name: str = Field(title="Имя роли", max_length=50)
 
 
@@ -47,3 +47,7 @@ class ActionDto(BaseModel):
 
 class RoleActionDto(RoleSchemaDto):
     actions: list[ActionDto]
+
+
+class RoleAction(RoleActionDto, MixinId):
+    pass
