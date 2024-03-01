@@ -4,13 +4,12 @@ from helpers.exceptions import AuthRoleNotVerifyException
 from schemas import roles
 from services.role_service import AuthRoleService, get_role_service
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post(
     "/roles/create",
     status_code=status.HTTP_201_CREATED,
-    tags=["roles"],
     description="Создать роль на основании имеющихся возможных действий",
     summary="Создать роль",
 )
@@ -26,7 +25,6 @@ async def create_role(
     path="/roles/read",
     response_model=list[roles.RoleActionSchema],
     status_code=status.HTTP_200_OK,
-    tags=["roles"],
     description="Получить существующие роли с детализацией по разрешенным действиям",
     summary="Получить существующие роли",
 )
@@ -40,7 +38,6 @@ async def get_roles(
 @router.put(
     "/roles/update",
     status_code=status.HTTP_200_OK,
-    tags=["roles"],
     description="Изменить название, комментарий и разрешенные действия у существующей роли",
     summary="Изменить существующую роль",
 )
@@ -55,7 +52,6 @@ async def update_role(
 @router.delete(
     "/roles/delete/{name}",
     status_code=status.HTTP_200_OK,
-    tags=["roles"],
     description="Изменить название, комментарий и разрешенные действия у существующей роли",
     summary="Изменить существующую роль",
 )
@@ -70,7 +66,6 @@ async def delete_role(
 @router.post(
     "/roles/set",
     status_code=status.HTTP_201_CREATED,
-    tags=["roles"],
     description="Назначить роль пользователю",
     summary="Назначить роль пользователю",
 )
@@ -85,7 +80,6 @@ async def set_role(
 @router.post(
     "/roles/verify",
     status_code=status.HTTP_200_OK,
-    tags=["roles"],
     description="Верифицировать роль пользователя",
     summary="Верифицировать роль пользователя",
 )
