@@ -71,7 +71,7 @@ async def login_user(
     response.set_cookie(
         'session_id', session, httponly=True,
     )
-    return {"detail": session}
+    return {"detail": "login successful"}
 
 
 @router.get(
@@ -112,11 +112,15 @@ async def refresh_token(
 )
 async def logout_user(
         response: Response,
+        session_id: str = Cookie(None),
         refresh_token: str | None = Cookie(None),
+        history_service: HistoryService = Depends(get_history_service),
         redis: Redis = Depends(get_redis),
 ) -> dict:
     """Logout endpoint by access token."""
     await password.delete_refresh_token(refresh_token, redis)
     response.delete_cookie('access_token')
     response.delete_cookie('refresh_token')
+    await history_service.update(session_id)
+    response.delete_cookie('session_id')
     return {'detail': 'logout is successfully'}

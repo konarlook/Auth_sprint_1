@@ -23,6 +23,6 @@ class FullHistorySchema(HistoryBase):
         default=None, comment="Дата и время выхода пользователя"
     )
 
+
 class FullIdHistorySchema(IdHistorySchema, FullHistorySchema):
     pass
-

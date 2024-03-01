@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import Depends
 
 from schemas.histories import HistoryBase
@@ -23,8 +25,8 @@ class HistoryService(BaseService):
     async def delete(self, *args, **kwargs):
         pass
 
-    async def update(self, *args, **kwargs):
-        await self.database_client.add_logout_history()
+    async def update(self, session_id: uuid.UUID):
+        await self.database_client.add_logout_history(session_id)
 
 
 def get_history_service(
