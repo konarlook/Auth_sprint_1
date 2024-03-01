@@ -22,3 +22,7 @@ class FullHistorySchema(HistoryBase):
     dt_logout: datetime | None = Field(
         default=None, comment="Дата и время выхода пользователя"
     )
+
+class FullIdHistorySchema(IdHistorySchema, FullHistorySchema):
+    pass
+

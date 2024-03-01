@@ -54,4 +54,4 @@ class SQLAlchemyRepository(
         self.session.add(db_obj)
         await self.session.flush()
         await self.session.commit()
-        return db_obj
+

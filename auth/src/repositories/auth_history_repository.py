@@ -7,7 +7,7 @@ from fastapi import Depends
 
 from repositories.sqlalchemy_repository import SQLAlchemyRepository
 from models.auth_orm_models import AuthHistotyOrm
-from schemas.histories import HistoryBase
+from schemas.histories import HistoryBase, FullIdHistorySchema
 from db.sqlalchemy_db import get_db_session
 
 
@@ -32,7 +32,7 @@ class AuthHistoryRepository(SQLAlchemyRepository):
 
     async def add_login_history(self, user_id: uuid.UUID, device_id: str):
         session = uuid.uuid4()
-        auth_history = HistoryBase(
+        auth_history = FullIdHistorySchema(
             id=session,
             user_id=user_id,
             dt_login=datetime.datetime.now(),

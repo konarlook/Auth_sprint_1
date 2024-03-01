@@ -32,7 +32,7 @@ class CommonSettings(_BaseSettings):
 
 class PostgresSettings(_BaseSettings):
     postgres_host: str = Field(
-        default='postgres_auth',
+        default='0.0.0.0',#'postgres_auth',
         description='Адрес хоста Postgres для модуля авторизации',
     )
     postgres_port: int = Field(
@@ -59,7 +59,7 @@ class PostgresSettings(_BaseSettings):
 
 class RedisSettings(_BaseSettings):
     auth_redis_host: str = Field(
-        default='redis_auth',
+        default='0.0.0.0',#'redis_auth',
         description='Адрес хоста Redis для модуля авторизации',
     )
     auth_redis_port: int = Field(
@@ -82,7 +82,7 @@ class RedisSettings(_BaseSettings):
 
 class BackendSettings(_BaseSettings):
     auth_backend_host: str = Field(
-        default='auth',
+        default='0.0.0.0',#'auth',
         description="Адрес хоста сервиса авторизации",
     )
     auth_backend_port: int = Field(
