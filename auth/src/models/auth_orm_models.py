@@ -100,4 +100,4 @@ class AuthHistotyOrm(Base):
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user_data.id"), comment="ID пользователя"
     )
-    device_id: Mapped[int] = mapped_column(comment="ID устройства", nullable=True)
+    device_id: Mapped[str_256] = mapped_column(comment="Устройства", nullable=True)

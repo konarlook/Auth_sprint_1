@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, status, Response, Cookie
+from fastapi import APIRouter, Depends, status, Response, Cookie, Request
 from fastapi.security import HTTPBasic
 from redis.asyncio import Redis
 
 from schemas import users
+from schemas.histories import HistoryBase
 from services.user_service import AuthUserService, get_user_service
+from services.history_service import HistoryService, get_history_service
 from helpers.exceptions import AuthException
 from helpers import password
 from db.redis import get_redis
@@ -12,7 +14,7 @@ router = APIRouter(prefix='/auth', tags=['Auth'])
 security = HTTPBasic()
 
 
-@router.get(
+@router.post(
     path="/signup/",
     response_model=users.UserBaseSchema,
     status_code=status.HTTP_201_CREATED,
@@ -35,7 +37,7 @@ async def create_user(
     return user
 
 
-@router.get(
+@router.post(
     path="/login/",
     summary='Авторизация пользователя',
     description='Регистрация пользователя по логину и паролю',
@@ -43,8 +45,10 @@ async def create_user(
 )
 async def login_user(
         response: Response,
+        request: Request,
         user_dto: users.LoginUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service),
+        history_service: HistoryService = Depends(get_history_service),
         redis: Redis = Depends(get_redis),
 
 ) -> dict:
@@ -60,7 +64,14 @@ async def login_user(
         'access_token', tokens['access_token'], httponly=True, max_age=20)
     response.set_cookie(
         'refresh_token', tokens['refresh_token'], httponly=True, max_age=40)
-    return {"detail": "Successfully login"}
+    session = await history_service.create(
+        user_id=user_dto.id,
+        device_id=request.headers.get('User-Agent'),
+    )
+    response.set_cookie(
+        'session_id', session, httponly=True,
+    )
+    return {"detail": "login successful"}
 
 
 @router.get(
@@ -93,7 +104,7 @@ async def refresh_token(
     return {"detail": "Successfully refresh"}
 
 
-@router.get(
+@router.post(
     path='/logout/',
     summary='Выход из профиля',
     description='Выход из профиля по access token',
@@ -101,11 +112,15 @@ async def refresh_token(
 )
 async def logout_user(
         response: Response,
-        refresh_token: str = Cookie(None),
+        session_id: str = Cookie(None),
+        refresh_token: str | None = Cookie(None),
+        history_service: HistoryService = Depends(get_history_service),
         redis: Redis = Depends(get_redis),
 ) -> dict:
     """Logout endpoint by access token."""
     await password.delete_refresh_token(refresh_token, redis)
     response.delete_cookie('access_token')
     response.delete_cookie('refresh_token')
+    await history_service.update(session_id)
+    response.delete_cookie('session_id')
     return {'detail': 'logout is successfully'}

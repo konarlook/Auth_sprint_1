@@ -3,10 +3,12 @@ import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 
 from repositories.sqlalchemy_repository import SQLAlchemyRepository
 from models.auth_orm_models import AuthHistotyOrm
-from schemas.histories import HistoryBase
+from schemas.histories import HistoryBase, FullIdHistorySchema
+from db.sqlalchemy_db import get_db_session
 
 
 class AuthHistoryRepository(SQLAlchemyRepository):
@@ -29,17 +31,23 @@ class AuthHistoryRepository(SQLAlchemyRepository):
         return result
 
     async def add_login_history(self, user_id: uuid.UUID, device_id: str):
-        auth_history = HistoryBase(
-            id=uuid.uuid4(),
+        session = uuid.uuid4()
+        auth_history = FullIdHistorySchema(
+            id=session,
             user_id=user_id,
             dt_login=datetime.datetime.now(),
             dt_logout=None,
             device_id=device_id,
         )
-        return await self.create(auth_history)
+        await self.create(auth_history.dict())
+        return session
 
     async def add_logout_history(self, session_id: uuid.UUID):
         update_data = {"dt_logout": datetime.datetime.now()}
         await self.update(
             orm_field=self._model.id, where_cond=session_id, update_data=update_data
         )
+
+
+def get_db_history_client(session: AsyncSession = Depends(get_db_session)):
+    return AuthHistoryRepository(session=session)
