@@ -12,6 +12,10 @@ class RoleSchemaDto(BaseModel):
     comment: str = Field(title="Комментарий", max_length=256)
 
 
+class RoleSchema(RoleSchemaDto, MixinId):
+    pass
+
+
 class ActionSchema(BaseModel):
     action_name: str = Field(title="Имя действия", max_length=50)
     comment: str = Field(title="Комментарий", max_length=256)
@@ -25,6 +29,10 @@ class UserRoleSchema(BaseModel):
 class UserRoleDto(BaseModel):
     user_id: uuid.UUID = Field(title="ID пользователя")
     role_name: str = Field(title="Имя роли", max_length=50)
+
+
+class UserRole(UserRoleSchema, MixinId):
+    pass
 
 
 class RoleActionSchema(RoleSchemaDto):

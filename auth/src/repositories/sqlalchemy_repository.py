@@ -22,7 +22,11 @@ class SQLAlchemyRepository(
 
     @staticmethod
     def to_pydantic(db_obj, pydantic_model):
-        return pydantic_model(**db_obj.__dict__)
+        try:
+            pd_model = pydantic_model(**db_obj.__dict__)
+        except (TypeError, AttributeError):
+            pd_model = None
+        return pd_model
 
     async def read(self):
         try:
@@ -57,5 +61,10 @@ class SQLAlchemyRepository(
         db_obj = self._model(**entity_model)
         self.session.add(db_obj)
         await self.session.flush()
+        await self.session.commit()
+        return db_obj
+
+    async def merge(self, update_data: dict) -> _model:
+        db_obj = await self.session.merge(self._model(**update_data))
         await self.session.commit()
         return db_obj

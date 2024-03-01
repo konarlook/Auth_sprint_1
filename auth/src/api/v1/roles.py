@@ -74,7 +74,8 @@ async def set_role(
     user_dto: roles.UserRoleDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
 ):
-    pass
+    await role_service.set_role(user_role=user_dto)
+    return Response(status_code=status.HTTP_201_CREATED)
 
 
 @router.post(

@@ -14,3 +14,19 @@ class AuthRoleNotVerifyException(HTTPException):
     ):
         self.detail = detail
         self.status_code = status_code
+
+
+class AuthRoleIsAlreadySetException(HTTPException):
+    def __init__(
+        self, detail: str = "This is actual role", status_code=status.HTTP_409_CONFLICT
+    ):
+        self.detail = detail
+        self.status_code = status_code
+
+
+class AuthRoleIsNotExistException(HTTPException):
+    def __init__(
+        self, detail: str = "Role is not exist", status_code=status.HTTP_409_CONFLICT
+    ):
+        self.detail = detail
+        self.status_code = status_code
