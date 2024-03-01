@@ -51,8 +51,10 @@ class AuthRoleService(BaseService):
             raise AuthRoleIsNotExistException(detail="Roles are not exist")
         return result
 
-    async def update(self, *args, **kwargs):
-        raise NotImplementedError
+    async def update(self, role: roles.RoleActionDto):
+        await self.delete(name=role.role_name)
+        db_obj = await self.create(role=role)
+        return db_obj
 
     async def delete(self, name: str) -> None:
         role = await self.roles_repo.get_role_by_name(role_name=name)
