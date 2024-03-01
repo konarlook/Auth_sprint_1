@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, status, Response, Cookie, Request
 from fastapi.security import HTTPBasic
 from redis.asyncio import Redis
 
-from schemas import users
+from schemas import users, roles
+from services.role_service import AuthRoleService, get_role_service
 from services.user_service import AuthUserService, get_user_service
 from services.history_service import HistoryService, get_history_service
 from helpers.exceptions import AuthException
 from helpers import password
 from db.redis import get_redis
+from core.constants import UserRoleEnum
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 security = HTTPBasic()
@@ -23,6 +25,7 @@ security = HTTPBasic()
 async def create_user(
     user_dto: users.CreateUserSchema = Depends(),
     user_service: AuthUserService = Depends(get_user_service),
+    role_service: AuthRoleService = Depends(get_role_service),
 ) -> users.UserBaseSchema:
     """User registration endpoint by required fields."""
     request_email = await user_service.get(email=user_dto.email)
@@ -31,7 +34,13 @@ async def create_user(
             message="User already exists",
             status_code=status.HTTP_409_CONFLICT,
         )
-    user = await user_service.create(user_dto=user_dto)
+    user_encode = await user_service.create(user_dto=user_dto)
+    user = users.UserBaseSchema(email=user_encode["email"])
+    await role_service.set_role(
+        user_role=roles.UserRoleDto(
+            user_id=user_encode["id"], role_name=UserRoleEnum.DefaultUser.value
+        )
+    )
     return user
 
 

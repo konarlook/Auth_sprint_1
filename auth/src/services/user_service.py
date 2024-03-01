@@ -3,7 +3,6 @@ from fastapi import Depends
 
 from .base_service import BaseService
 from repositories.user_data_repository import get_database_client, UserDataRepository
-from schemas.users import UserBaseSchema
 from helpers.password import verify_password, get_password_hash
 
 
@@ -15,11 +14,11 @@ class AuthUserService(BaseService):
         """Get user information by email."""
         return await self.database_client.get_user_by_email(email)
 
-    async def create(self, user_dto):
+    async def create(self, user_dto) -> dict:
         """Create a new user by requesting email and password."""
         user_dto.hashed_password = get_password_hash(user_dto.hashed_password)
-        await self.database_client.create_user(user_data=user_dto)
-        return UserBaseSchema(email=user_dto.email)
+        encoded_user = await self.database_client.create_user(user_data=user_dto)
+        return encoded_user
 
     async def delete(self):
         """Delete user by email and password."""
@@ -34,13 +33,14 @@ class AuthUserService(BaseService):
         if not response:
             return None
         if not verify_password(
-                user_info.hashed_password,
-                response.hashed_password,
+            user_info.hashed_password,
+            response.hashed_password,
         ):
             return None
         return response
 
 
 def get_user_service(
-        database_client: UserDataRepository = Depends(get_database_client)):
+    database_client: UserDataRepository = Depends(get_database_client),
+):
     return AuthUserService(database_client=database_client)
