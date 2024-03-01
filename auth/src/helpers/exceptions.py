@@ -10,7 +10,7 @@ class AuthException(Exception):
 
 class AuthRoleNotVerifyException(HTTPException):
     def __init__(
-        self, detail: str = "Role not verify", status_code=status.HTTP_409_CONFLICT
+        self, detail: str = "Role is not verify", status_code=status.HTTP_409_CONFLICT
     ):
         self.detail = detail
         self.status_code = status_code

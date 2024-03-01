@@ -1,6 +1,6 @@
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Select, Update, update
+from sqlalchemy import Select, Update, update, delete, Delete
 from repositories.base import (
     MixinDeleteRepository,
     MixinCreateRepository,
@@ -12,7 +12,7 @@ class SQLAlchemyRepository(
     MixinCreateRepository, MixinDeleteRepository, MixinUpdateRepository
 ):
     _model = None
-    _statement: Select | Update | None = None
+    _statement: Select | Update | Delete | None = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -47,8 +47,10 @@ class SQLAlchemyRepository(
             self.reset_statement()
         return result
 
-    async def delete(self):
-        return  # TODO(MosyaginGrigorii)
+    async def delete(self, where_cond, orm_field):
+        self._statement = delete(self._model).where(where_cond == orm_field)
+        await self.session.execute(self._statement)
+        await self.session.commit()
 
     async def update(self, orm_field, where_cond, update_data):
         self._statement = (

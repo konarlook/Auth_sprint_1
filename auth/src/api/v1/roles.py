@@ -59,8 +59,9 @@ async def update_role(
 async def delete_role(
     name: str = Path(max_length=50, title="Имя роли"),
     role_service: AuthRoleService = Depends(get_role_service),
-):
-    pass
+) -> Response:
+    await role_service.delete(name=name)
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @router.post(
