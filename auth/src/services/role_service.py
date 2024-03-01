@@ -19,13 +19,16 @@ class AuthRoleService(BaseService):
         """Create a new role."""
         raise NotImplementedError
 
-    async def get(self, *args, **kwargs):
-        raise NotImplementedError
+    async def get(self, *args, **kwargs) -> list[roles.RoleActionSchema] | None:
+        result = await self.roles_repo.get_all_roles()
+        if not result:
+            raise AuthRoleIsNotExistException(detail="Roles are not exist")
+        return result
 
     async def update(self, *args, **kwargs):
         raise NotImplementedError
 
-    async def delete(self, name: str):
+    async def delete(self, name: str) -> None:
         role = await self.roles_repo.get_role_by_name(role_name=name)
         if not role:
             raise AuthRoleIsNotExistException()

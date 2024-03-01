@@ -30,11 +30,14 @@ class SQLAlchemyRepository(
 
     async def read(self):
         try:
-            result = await self.session.execute(self._statement)
+            buff_result = await self.session.execute(self._statement)
+            result = buff_result.scalars().all()
+        except NoResultFound:
+            result = None
         finally:
             await self.session.close()
             self.reset_statement()
-        return result.scalars().all()
+        return result
 
     async def read_one(self):
         try:

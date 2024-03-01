@@ -18,7 +18,7 @@ class RoleSchema(RoleSchemaDto, MixinId):
 
 class ActionSchema(BaseModel):
     action_name: str = Field(title="Имя действия", max_length=50)
-    comment: str = Field(title="Комментарий", max_length=256)
+    comment: str | None = Field(title="Комментарий", max_length=256)
 
 
 class UserRoleSchema(BaseModel):
