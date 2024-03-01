@@ -59,3 +59,8 @@ class RoleActionDto(RoleSchemaDto):
 
 class RoleAction(RoleActionDto, MixinId):
     pass
+
+
+class MixActionsSchema(MixinId):
+    role_id: uuid.UUID
+    action_id: uuid.UUID

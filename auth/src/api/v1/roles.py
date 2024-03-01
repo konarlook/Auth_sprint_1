@@ -18,7 +18,8 @@ async def create_role(
     role_dto: roles.RoleActionDto = Depends(),
     role_service: AuthRoleService = Depends(get_role_service),
 ):
-    pass
+    response = await role_service.create(role_dto)
+    return response
 
 
 @router.get(

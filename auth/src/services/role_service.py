@@ -3,6 +3,12 @@ from fastapi import Depends
 from helpers.exceptions import (
     AuthRoleIsAlreadySetException,
     AuthRoleIsNotExistException,
+    AuthRoleIsExistException,
+)
+from repositories.actions_repository import ActionsRepository, get_actions_repository
+from repositories.mixactions_repository import (
+    get_mix_actions_repository,
+    MixActionsRepository,
 )
 from repositories.roles_repository import RolesRepository, get_roles_repository
 from repositories.users_repository import UsersRepository, get_users_repository
@@ -11,13 +17,33 @@ from services.base_service import BaseService
 
 
 class AuthRoleService(BaseService):
-    def __init__(self, users_repo: UsersRepository, roles_repo: RolesRepository):
+    def __init__(
+        self,
+        users_repo: UsersRepository,
+        roles_repo: RolesRepository,
+        mix_actions_repo: MixActionsRepository,
+        action_repo: ActionsRepository,
+    ):
         self.users_repo = users_repo
         self.roles_repo = roles_repo
+        self.mix_actions_repo = mix_actions_repo
+        self.action_repo = action_repo
 
-    async def create(self, role: roles.RoleAction):
+    async def create(self, role: roles.RoleActionDto):
         """Create a new role."""
-        raise NotImplementedError
+        role_exist = await self.roles_repo.get_role_by_name(role_name=role.role_name)
+        if role_exist:
+            raise AuthRoleIsExistException()
+        # TODO(MosyaginGrigorii): Подумать как сделать транзакцию, пока не получается из-за разных сессий
+        action_names = [i[0] for i in role.actions[0] if i[-1]]
+        roles_db_obj = await self.action_repo.get_actions_by_names(action_names)
+        roles_ids = [row.id for row in roles_db_obj]
+        role_model = roles.RoleSchema(role_name=role.role_name, comment=role.comment)
+        await self.roles_repo.create(role_model.dict())
+        await self.mix_actions_repo.set_actions_to_role(
+            role_id=role_model.id, action_ids=roles_ids
+        )
+        return role
 
     async def get(self, *args, **kwargs) -> list[roles.RoleActionSchema] | None:
         result = await self.roles_repo.get_all_roles()
@@ -59,5 +85,12 @@ class AuthRoleService(BaseService):
 def get_role_service(
     users_repo: UsersRepository = Depends(get_users_repository),
     roles_repo: RolesRepository = Depends(get_roles_repository),
+    mix_actions_repo: MixActionsRepository = Depends(get_mix_actions_repository),
+    action_repo: ActionsRepository = Depends(get_actions_repository),
 ) -> AuthRoleService:
-    return AuthRoleService(users_repo=users_repo, roles_repo=roles_repo)
+    return AuthRoleService(
+        users_repo=users_repo,
+        roles_repo=roles_repo,
+        mix_actions_repo=mix_actions_repo,
+        action_repo=action_repo,
+    )

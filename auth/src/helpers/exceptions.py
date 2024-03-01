@@ -30,3 +30,13 @@ class AuthRoleIsNotExistException(HTTPException):
     ):
         self.detail = detail
         self.status_code = status_code
+
+
+class AuthRoleIsExistException(HTTPException):
+    def __init__(
+        self,
+        detail: str = "Role is already exist",
+        status_code=status.HTTP_409_CONFLICT,
+    ):
+        self.detail = detail
+        self.status_code = status_code
