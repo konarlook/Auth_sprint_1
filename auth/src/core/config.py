@@ -81,11 +81,11 @@ class RedisSettings(_BaseSettings):
 
 
 class BackendSettings(_BaseSettings):
-    backend_host: str = Field(
+    auth_backend_host: str = Field(
         default='auth',
         description="Адрес хоста сервиса авторизации",
     )
-    backend_port: int = Field(
+    auth_backend_port: int = Field(
         default=8000,
         description="Порт сервиса авторизации",
     )
@@ -96,7 +96,7 @@ class BackendSettings(_BaseSettings):
     auth_refresh_token_lifetime: int = Field(
         default='1'
     )
-    algorithm_auth: str = Field(
+    auth_algorithm_password: str = Field(
         default='HS256',
         description='Алгоритм шифрования токена',
     )

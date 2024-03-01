@@ -33,7 +33,7 @@ async def create_token(data: dict, expires_delta: timedelta | None = None) -> st
     encoded_jwt = jwt.encode(
         to_encode,
         settings.backend.auth_secret_key,
-        algorithm=settings.backend.algorithm_auth)
+        algorithm=settings.backend.auth_algorithm_password)
     return encoded_jwt
 
 
