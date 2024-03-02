@@ -1,5 +1,7 @@
+from http.client import HTTPException
+
 from pydantic import EmailStr
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 
 from .base_service import BaseService
 from repositories.user_data_repository import get_database_client, UserDataRepository
@@ -24,23 +26,31 @@ class AuthUserService(BaseService):
         """Delete user by email and password."""
         pass
 
-    async def update(self):
+    async def update(self, user_id: str, password_data):
         """Update user information."""
-        pass
+        old_hashed_password = get_password_hash(password_data.old_password)
+        response = await self.database_client.get_user_by_id(user_id=user_id)
+        if not verify_password(password_data.old_password, response.hashed_password):
+            raise HTTPException(
+                detail='Invalid login or password.',
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+        new_hashed_password = get_password_hash(password_data.new_password)
+        await self.database_client.update_password(user_id, new_hashed_password)
 
     async def check_user(self, user_info):
         response = await self.get(email=user_info.email)
         if not response:
             return None
         if not verify_password(
-            user_info.hashed_password,
-            response.hashed_password,
+                user_info.hashed_password,
+                response.hashed_password,
         ):
             return None
         return response
 
 
 def get_user_service(
-    database_client: UserDataRepository = Depends(get_database_client),
+        database_client: UserDataRepository = Depends(get_database_client),
 ):
     return AuthUserService(database_client=database_client)

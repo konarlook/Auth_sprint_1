@@ -1,18 +1,15 @@
-from datetime import datetime
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
-from fastapi.security import HTTPBasic
 from redis.asyncio import Redis
 
 from schemas import users, roles, histories
 from services.role_service import AuthRoleService, get_role_service
 from services.user_service import AuthUserService, get_user_service
 from services.history_service import HistoryService, get_history_service
-from helpers import password
+from helpers import password, access
 from db.redis import get_redis
 from core.constants import UserRoleEnum
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-security = HTTPBasic()
 
 
 @router.post(
@@ -87,6 +84,24 @@ async def login_user(
     return {"detail": "login successful"}
 
 
+@router.put(
+    path='/change-password/',
+    status_code=status.HTTP_200_OK,
+    summary='Изменение пароля',
+    description='Изменить пароль по access token',
+)
+@access.check_access_token
+async def change_password(
+        access_token: str | None = Cookie(None),
+        user_service: AuthUserService = Depends(get_user_service),
+        password_data: users.ChangePasswordSchema = Depends(),
+) -> dict:
+    """Change password by access token."""
+    user_info = await password.decode_token(access_token)
+    await user_service.update(user_info['sub'], password_data)
+    return {"detail": "Successfully changed password."}
+
+
 @router.get(
     path="/refresh/",
     summary="Обновления refresh token",
@@ -132,6 +147,7 @@ async def refresh_token(
 )
 async def logout_user(
         response: Response,
+        access_token: str | None = Cookie(None),
         refresh_token: str | None = Cookie(None),
         history_service: HistoryService = Depends(get_history_service),
         redis: Redis = Depends(get_redis),
@@ -156,6 +172,7 @@ async def logout_user(
     summary='Получение пользовательской истории',
     description='Получение истории пользователя по access token',
 )
+@access.check_access_token
 async def get_history(
         access_token: str = Cookie(None),
         history_service: HistoryService = Depends(get_history_service),
