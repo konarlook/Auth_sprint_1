@@ -67,12 +67,12 @@ async def login_user(
         device_id=request.headers.get("User-Agent"),
     )
 
-    role = 'default'
+    action = await user_service.get_role(user_dto)
 
     tokens = await password.create_tokens(
         user_dto.dict(),
         client_id=client_id,
-        role=role,
+        actions=action,
         redis=redis,
     )
     response.set_cookie(
