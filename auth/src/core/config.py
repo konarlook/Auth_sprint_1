@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings
 from .logger import LOGGING
 
 logging_config.dictConfig(LOGGING)
+DEBUG = True
 
 
 class _BaseSettings(BaseSettings):
@@ -19,7 +20,7 @@ class CommonSettings(_BaseSettings):
     service_name: str = Field(
         default='auth',
         description='Название сервиса авторизации',
-    )
+    ) if not DEBUG else '0.0.0.0'
     base_dir: str = Field(
         default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         description='Корень проекта',
@@ -34,7 +35,7 @@ class PostgresSettings(_BaseSettings):
     postgres_host: str = Field(
         default='postgres_auth',
         description='Адрес хоста Postgres для модуля авторизации',
-    )
+    ) if not DEBUG else '0.0.0.0'
     postgres_port: int = Field(
         default=5432,
         description='Порт Postgres для сервиса авторизации',
@@ -61,7 +62,7 @@ class RedisSettings(_BaseSettings):
     auth_redis_host: str = Field(
         default='redis_auth',
         description='Адрес хоста Redis для модуля авторизации',
-    )
+    ) if not DEBUG else '0.0.0.0'
     auth_redis_port: int = Field(
         default=6379,
         description='Порт Redis для сервиса авторизации',
@@ -84,7 +85,7 @@ class BackendSettings(_BaseSettings):
     auth_backend_host: str = Field(
         default='auth',
         description="Адрес хоста сервиса авторизации",
-    )
+    ) if not DEBUG else '0.0.0.0'
     auth_backend_port: int = Field(
         default=8000,
         description="Порт сервиса авторизации",

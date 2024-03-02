@@ -1,10 +1,9 @@
 import uuid
-
 from fastapi import Depends
-
-from schemas.histories import HistoryBase
-from repositories.auth_history_repository import (AuthHistoryRepository,
-                                                  get_db_history_client)
+from repositories.auth_history_repository import (
+    AuthHistoryRepository,
+    get_db_history_client,
+)
 from .base_service import BaseService
 
 
@@ -12,8 +11,9 @@ class HistoryService(BaseService):
     def __init__(self, database_client: AuthHistoryRepository):
         self.database_client = database_client
 
-    async def get(self):
-        pass
+    async def get(self, user_id: str):
+        list_history = await self.database_client.get_auth_history(user_id)
+        return list_history
 
     async def create(self, user_id, device_id) -> None:
         _session = await self.database_client.add_login_history(
