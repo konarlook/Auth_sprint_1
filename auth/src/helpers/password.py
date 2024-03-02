@@ -1,9 +1,11 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import timedelta, datetime
 from passlib.context import CryptContext
 from fastapi.security import HTTPBearer
 from jose import jwt
 from redis.asyncio import Redis
+from redis.exceptions import DataError
+
 
 from core.config import settings
 
@@ -19,9 +21,13 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-async def create_token(data: dict, expires_delta: timedelta | None = None) -> str:
+async def create_token(data: dict,
+                       client_id: str,
+                       expires_delta: timedelta | None = None) -> str:
+    """Function for creating access token."""
     to_encode = data.copy()
     iatime = datetime.utcnow()
+
     if expires_delta:
         expire = iatime + expires_delta
     else:
@@ -29,6 +35,8 @@ async def create_token(data: dict, expires_delta: timedelta | None = None) -> st
     to_encode.update({
         "iat": iatime,
         "exp": expire,
+        'client_id': str(client_id),
+        'jti': str(uuid4()),
     })
     encoded_jwt = jwt.encode(
         to_encode,
@@ -37,35 +45,56 @@ async def create_token(data: dict, expires_delta: timedelta | None = None) -> st
     return encoded_jwt
 
 
-async def create_refresh_token(user_id: UUID, redis: Redis) -> str:
-    refresh_token_data: dict = {"user_id": str(user_id)}
+async def create_access_token(data: dict, role: str, client_id: str):
+    """Function for creating access token."""
+    access_token_data = {
+        'sub': str(data['id']),
+        'role': role,
+    }
+    access_token = await create_token(
+        data=access_token_data,
+        client_id=client_id,
+    )
+    return access_token
+
+
+async def create_refresh_token(_id: UUID, client_id: str, redis: Redis) -> str:
+    """Function for creating refresh token."""
+    refresh_token_data: dict = {"id": str(_id)}
     refresh_token: str = await create_token(
         data=refresh_token_data,
+        client_id=client_id,
         expires_delta=timedelta(days=settings.backend.auth_refresh_token_lifetime),
     )
     await redis.sadd('refresh_tokens', refresh_token)
     return refresh_token
 
 
-async def create_tokens(user_id, redis) -> dict:
-    access_token = await create_token(
-        data={'sub': str(user_id)}
+async def create_tokens(data: dict, *, client_id: str, role: str, redis) -> dict:
+    _access_token = await create_access_token(
+        data=data,
+        role=role,
+        client_id=client_id
     )
     _refresh_token = await create_refresh_token(
-        user_id=user_id,
+        _id=data['id'],
+        client_id=client_id,
         redis=redis,
     )
-    return {"access_token": access_token, "refresh_token": _refresh_token}
+    return {"access_token": _access_token, "refresh_token": _refresh_token}
 
 
 async def decode_token(_token: str) -> dict:
     _info = jwt.get_unverified_claims(_token)
-    print(_info)
     return _info
 
 
-async def delete_refresh_token(refresh_token: str, redis: Redis) -> None:
-    await redis.srem("refresh_tokens", refresh_token)
+async def delete_refresh_token(refresh_token: str, redis: Redis) -> bool:
+    try:
+        await redis.srem("refresh_tokens", refresh_token)
+        return True
+    except DataError:
+        return False
 
 
 async def check_refresh_token(refresh_token: str, redis: Redis) -> bool:
