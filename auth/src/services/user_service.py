@@ -28,7 +28,6 @@ class AuthUserService(BaseService):
 
     async def update(self, user_id: str, password_data):
         """Update user information."""
-        old_hashed_password = get_password_hash(password_data.old_password)
         response = await self.database_client.get_user_by_id(user_id=user_id)
         if not verify_password(password_data.old_password, response.hashed_password):
             raise HTTPException(
