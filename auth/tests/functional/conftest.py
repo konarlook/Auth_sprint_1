@@ -1,13 +1,13 @@
 from types import SimpleNamespace
 
-import pytest
+import pytest_asyncio
 from alembic.config import Config
 
 from src.migrations import make_alembic_config
 from tests.functional.core.settings import test_settings
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(name="alembconfig_from_url", scope="session", autouse=True)
 def alembconfig_from_url() -> Config:
     pg_url = test_settings.database_url_asyncpg + "?async_fallback=True"
     cmd_options = SimpleNamespace(
