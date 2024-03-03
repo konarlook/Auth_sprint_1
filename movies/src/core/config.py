@@ -1,10 +1,13 @@
 import os
+from pathlib import Path
 from logging import config as logging_config
 
+from dotenv import load_dotenv, find_dotenv
 from pydantic import BaseSettings, Field
 
 from core.logger import LOGGING
 
+load_dotenv(find_dotenv())
 logging_config.dictConfig(LOGGING)
 
 
@@ -24,6 +27,23 @@ class CommonSettings(_BaseSettings):
     base_dir: str = Field(
         default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         description="Корень проекта",
+    )
+
+
+class AuthJWTSettings(_BaseSettings):
+    private_key: Path = Path(__file__).parent / 'certs' / 'private.pem'
+    public_key: Path = Path(__file__).parent / 'certs' / 'public.pem'
+    auth_algorithm_password: str = Field(
+        default='RS256',
+        description='Алгоритм шифрования токена',
+    )
+    access_token_lifetime: int = Field(
+        default=3600,
+        description='Время жизни access токенов в секундах',
+    )
+    refresh_token_lifetime: int = Field(
+        default=86400,
+        description='Время жизни refresh токена в секундах',
     )
 
 
@@ -77,6 +97,7 @@ class BackendSettings(_BaseSettings):
 class Settings(CommonSettings):
     """Main settings class for grouping other settings."""
 
+    auth_jwt: AuthJWTSettings = AuthJWTSettings()
     redis: RedisSettings = RedisSettings()
     elastic: ElasticSettings = ElasticSettings()
     pagination: PaginationSettings = PaginationSettings()
