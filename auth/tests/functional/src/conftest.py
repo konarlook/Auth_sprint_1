@@ -6,6 +6,7 @@ from alembic.command import upgrade
 from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from yarl import URL
 
 from tests.functional.core.settings import test_settings
 
@@ -25,7 +26,8 @@ def pg_migrate(alembconfig_from_url):
 @pytest_asyncio.fixture(name="aiohttp_session", scope="session")
 async def aiohttp_session():
     jar = aiohttp.CookieJar(unsafe=False)
-    session = aiohttp.ClientSession(cookie_jar=jar)
+    connector = aiohttp.TCPConnector(force_close=True)
+    session = aiohttp.ClientSession(connector=connector, cookie_jar=jar)
     yield session
     await session.close()
 
@@ -63,11 +65,16 @@ def redis_read_data(redis_client):
 
 @pytest_asyncio.fixture(name="make_get_request", scope="session")
 def make_get_request(aiohttp_session):
-    async def inner(url: str, query_data: dict):
-        async with aiohttp_session.get(
-            url, params=query_data, raise_for_status=True
-        ) as response:
-            return await response.json(), response.status
+    async def inner(url: str, query_data: dict, cookie=None):
+        kwarg = {
+            "url": url,
+            "params": query_data,
+            "raise_for_status": True,
+        }
+        if cookie:
+            kwarg["cookies"] = {"refresh_token": cookie["refresh_token"].value}
+        async with aiohttp_session.get(**kwarg) as response:
+            return await response.json(), response.status, response.cookies
 
     return inner
 
@@ -87,8 +94,6 @@ def make_post_request(aiohttp_session):
 def make_put_request(aiohttp_session):
     async def inner(url: str, query_data: dict, cookies=None):
         cookie = {"access_token": cookies["access_token"].value}
-        from yarl import URL
-
         url = str(URL(url).with_query(query_data)).replace("+", "")
         async with aiohttp_session.put(
             url, raise_for_status=True, cookies=cookie
@@ -96,24 +101,6 @@ def make_put_request(aiohttp_session):
             return await response.json(), response.status, response.cookies
 
     return inner
-
-
-# @pytest_asyncio.fixture(name="create_user", scope="session")
-# def create_user(sqlalchemy_session):
-#     async def inner(user_data):
-#         user_repo = user_data_repository.get_database_client(sqlalchemy_session)
-#         user = CreateUserSchema(
-#             email="me@gpn.ru",
-#             user_name="user_name",
-#             first_name="first_name",
-#             last_name="last_name",
-#             phone_number="123",
-#             hashed_password="123",
-#         )
-#         db_obj = await user_repo.create_user(user)
-#         return db_obj
-#
-#     return inner
 
 
 @pytest_asyncio.fixture(name="execute_raw_sql", scope="session")

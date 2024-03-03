@@ -206,3 +206,41 @@ async def test_change_password(
         assert expected_answer["status"] == status_change
         assert expected_answer["details"] == response_change["detail"]
         await asyncio.sleep(1)
+
+
+@pytest.mark.parametrize(
+    "query_data, expected_answer, expectation",
+    [
+        (
+            {
+                "email": "christian_bale@practix.ru",
+                "hashed_password": "practix_password",
+            },
+            {
+                "status": status.HTTP_200_OK,
+            },
+            does_not_raise(),
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_refresh(
+    make_post_request,
+    make_get_request,
+    redis_read_data,
+    execute_raw_sql,
+    query_data,
+    expected_answer,
+    expectation,
+):
+    # TODO(MosyaginGrigorii): Добавить рандомные символы в токен
+    url_login = test_settings.service_url + "/auth/login"
+    url_change = test_settings.service_url + "/auth/refresh"
+    with expectation:
+        response_login, status_login, cookies_login = await make_post_request(
+            url_login, query_data
+        )
+        response_change, status_change, cookies_change = await make_get_request(
+            url_change, {}, cookies_login
+        )
+        assert expected_answer["status"] == status_change
