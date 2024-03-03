@@ -81,10 +81,15 @@ def make_get_request(aiohttp_session):
 
 @pytest_asyncio.fixture(name="make_post_request")
 def make_post_request(aiohttp_session):
-    async def inner(url: str, query_data: dict, cookies=None):
-        async with aiohttp_session.post(
-            url, params=query_data, raise_for_status=True
-        ) as response:
+    async def inner(url: str, query_data: dict, cookie=None):
+        kwarg = {
+            "url": url,
+            "params": query_data,
+            "raise_for_status": True,
+        }
+        if cookie:
+            kwarg["cookies"] = {"refresh_token": cookie["refresh_token"].value}
+        async with aiohttp_session.post(**kwarg) as response:
             return await response.json(), response.status, response.cookies
 
     return inner
