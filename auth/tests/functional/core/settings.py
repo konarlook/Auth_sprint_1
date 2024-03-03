@@ -8,10 +8,10 @@ class TestSettings(BaseSettings):
     postgres_password: str = Field(default="test_auth_pass")
     postgres_host: str = Field(default="localhost")
     postgres_port: int = Field(default=5432)
-    redis_host: str = Field(default="localhost")
+    redis_host: str = Field(default="redis-testing")
     redis_port: int = Field(default=6379)
     redis_database: int = Field(default=0)
-    redis_password: str = Field(default="password")
+    redis_password: str = Field(default="test_auth_pass")
     service_url: str = Field(default="http://localhost:8000")
 
     @property

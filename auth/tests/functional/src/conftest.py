@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 import aiohttp
 import pytest_asyncio
@@ -41,7 +40,7 @@ async def sqlalchemy_session():
 @pytest_asyncio.fixture(name="redis_client", scope="session")
 async def redis_client():
     redis_client = Redis(
-        host=test_settings.redis_host,
+        host="localhost",
         port=test_settings.redis_port,
         db=test_settings.redis_database,
     )
@@ -49,19 +48,19 @@ async def redis_client():
     await redis_client.close()
 
 
-@pytest_asyncio.fixture(name="redis_read_data")
+@pytest_asyncio.fixture(name="redis_read_data", scope="session")
 def redis_read_data(redis_client):
     async def inner(key: str):
-        data = await redis_client.get(str(key))
+        data = await redis_client.smembers(str(key))
         if not data:
             return None
 
-        return json.loads(data)
+        return data
 
     return inner
 
 
-@pytest_asyncio.fixture(name="make_get_request")
+@pytest_asyncio.fixture(name="make_get_request", scope="session")
 def make_get_request(aiohttp_session):
     async def inner(url: str, query_data: dict):
         async with aiohttp_session.get(
@@ -78,7 +77,7 @@ def make_post_request(aiohttp_session):
         async with aiohttp_session.post(
             url, params=query_data, raise_for_status=True
         ) as response:
-            return await response.json(), response.status
+            return await response.json(), response.status, response.cookies
 
     return inner
 
