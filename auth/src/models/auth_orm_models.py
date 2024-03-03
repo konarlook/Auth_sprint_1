@@ -21,7 +21,10 @@ class UsersOrm(Base):
 
 class RolesOrm(Base):
     __tablename__ = "roles"
-    __table_args__ = (UniqueConstraint("role_name"), {"comment": "Таблица ролей"})
+    __table_args__ = (
+        UniqueConstraint("role_name", name="uniq_role_name"),
+        {"comment": "Таблица ролей"},
+    )
 
     id: Mapped[uuidpk]
     role_name: Mapped[str_50] = mapped_column(comment="Название роли")
@@ -36,16 +39,21 @@ class MixActionsOrm(Base):
 
     id: Mapped[uuidpk]
     role_id: Mapped[uuid] = mapped_column(
-        ForeignKey("roles.id", ondelete="CASCADE"), comment="ID роли"
+        ForeignKey("roles.id", ondelete="CASCADE", name="mix_actions_role_id_fkey"),
+        comment="ID роли",
     )
     action_id: Mapped[uuid] = mapped_column(
-        ForeignKey("actions.id"), comment="ID действия"
+        ForeignKey("actions.id", name="mix_actions_action_id_fkey"),
+        comment="ID действия",
     )
 
 
 class ActionsOrm(Base):
     __tablename__ = "actions"
-    __table_args__ = (UniqueConstraint("action_name"), {"comment": "Таблица действий"})
+    __table_args__ = (
+        UniqueConstraint("action_name", name="uniq_action_name"),
+        {"comment": "Таблица действий"},
+    )
 
     id: Mapped[uuidpk]
     action_name: Mapped[str_50] = mapped_column(comment="Название действия")

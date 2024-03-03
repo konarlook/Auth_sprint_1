@@ -15,7 +15,6 @@ def make_alembic_config(
 ) -> Config:
     if not os.path.isabs(cmd_opts.config):
         cmd_opts.config = os.path.join(base_path, cmd_opts.config)
-        print(cmd_opts.config)
 
     config = Config(file_=cmd_opts.config, ini_section=cmd_opts.name, cmd_opts=cmd_opts)
 
@@ -24,10 +23,8 @@ def make_alembic_config(
         config.set_main_option(
             "script_location", os.path.join(base_path, alembic_location)
         )
-        print(os.path.join(base_path, alembic_location))
     if cmd_opts.pg_url:
         config.set_main_option("sqlalchemy.url", cmd_opts.pg_url)
-        print(cmd_opts.pg_url)
 
     return config
 
