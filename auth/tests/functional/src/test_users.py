@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import nullcontext as does_not_raise
 
 import aiohttp
@@ -145,3 +146,63 @@ async def test_login(
         is_exist = cookies["refresh_token"].value in response_redis
         assert expected_answer["status"] == status
         assert is_exist
+
+
+@pytest.mark.parametrize(
+    "query_data_login, query_data_change, expected_answer, expectation",
+    [
+        (
+            {
+                "email": "christian_bale@practix.ru",
+                "hashed_password": "practix_password",
+            },
+            {
+                "old_password ": "practix_password",
+                "new_password ": "123",
+            },
+            {
+                "status": status.HTTP_200_OK,
+                "details": "Successfully changed password.",
+            },
+            does_not_raise(),
+        ),
+        (
+            {
+                "email": "christian_bale@practix.ru",
+                "hashed_password": "123",
+            },
+            {
+                "old_password ": "123",
+                "new_password ": "practix_password",
+            },
+            {
+                "status": status.HTTP_200_OK,
+                "details": "Successfully changed password.",
+            },
+            does_not_raise(),
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_change_password(
+    make_post_request,
+    make_put_request,
+    redis_read_data,
+    execute_raw_sql,
+    query_data_login,
+    query_data_change,
+    expected_answer,
+    expectation,
+):
+    url_login = test_settings.service_url + "/auth/login"
+    url_change = test_settings.service_url + "/auth/change-password"
+    with expectation:
+        response_login, status_login, cookies_login = await make_post_request(
+            url_login, query_data_login
+        )
+        response_change, status_change, cookies_change = await make_put_request(
+            url_change, query_data_change, cookies_login
+        )
+        assert expected_answer["status"] == status_change
+        assert expected_answer["details"] == response_change["detail"]
+        await asyncio.sleep(1)

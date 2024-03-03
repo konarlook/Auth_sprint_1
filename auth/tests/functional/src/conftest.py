@@ -24,7 +24,8 @@ def pg_migrate(alembconfig_from_url):
 
 @pytest_asyncio.fixture(name="aiohttp_session", scope="session")
 async def aiohttp_session():
-    session = aiohttp.ClientSession()
+    jar = aiohttp.CookieJar(unsafe=False)
+    session = aiohttp.ClientSession(cookie_jar=jar)
     yield session
     await session.close()
 
@@ -73,9 +74,24 @@ def make_get_request(aiohttp_session):
 
 @pytest_asyncio.fixture(name="make_post_request")
 def make_post_request(aiohttp_session):
-    async def inner(url: str, query_data: dict):
+    async def inner(url: str, query_data: dict, cookies=None):
         async with aiohttp_session.post(
             url, params=query_data, raise_for_status=True
+        ) as response:
+            return await response.json(), response.status, response.cookies
+
+    return inner
+
+
+@pytest_asyncio.fixture(name="make_put_request")
+def make_put_request(aiohttp_session):
+    async def inner(url: str, query_data: dict, cookies=None):
+        cookie = {"access_token": cookies["access_token"].value}
+        from yarl import URL
+
+        url = str(URL(url).with_query(query_data)).replace("+", "")
+        async with aiohttp_session.put(
+            url, raise_for_status=True, cookies=cookie
         ) as response:
             return await response.json(), response.status, response.cookies
 
