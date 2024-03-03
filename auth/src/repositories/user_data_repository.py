@@ -51,6 +51,14 @@ class UserDataRepository(SQLAlchemyRepository):
         await self.create(encode_data)
         return encode_data
 
+    async def update_password(
+            self, user_id: str, new_password: str
+    ):
+        data = {'hashed_password': new_password}
+        await self.update(
+            orm_field=self._model.id, where_cond=user_id, update_data=data,
+        )
+
 
 def get_database_client(session: AsyncSession = Depends(get_db_session)):
     return UserDataRepository(session=session)

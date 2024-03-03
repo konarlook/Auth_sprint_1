@@ -2,7 +2,6 @@ import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
@@ -10,8 +9,6 @@ from redis.asyncio import Redis
 from core.config import settings
 from core.logger import LOGGING
 from api.v1 import users, roles
-
-load_dotenv()
 
 
 @asynccontextmanager
@@ -35,6 +32,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
 
 app.include_router(router=users.router)
 app.include_router(router=roles.router)

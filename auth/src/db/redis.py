@@ -9,4 +9,5 @@ redis: Redis = Redis(
 
 
 async def get_redis() -> Redis:
-    return redis
+    redis_client = redis
+    return redis_client
