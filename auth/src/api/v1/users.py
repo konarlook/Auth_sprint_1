@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
 from redis.asyncio import Redis
 
-from schemas import users, roles, histories
+from schemas import users, roles, histories, jwt_schemas
 from services.role_service import AuthRoleService, get_role_service
 from services.user_service import AuthUserService, get_user_service
 from services.history_service import HistoryService, get_history_service
-from helpers import password, access
+from services.auth_service import AuthJWT, get_auth_jwt
+from helpers import access
 from db.redis import get_redis
+from core.config import settings
 from core.constants import UserRoleEnum
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -43,6 +45,7 @@ async def create_user(
 
 @router.post(
     path="/login/",
+    status_code=status.HTTP_200_OK,
     summary="Авторизация пользователя",
     description="Регистрация пользователя по логину и паролю",
 )
@@ -52,6 +55,7 @@ async def login_user(
         user_dto: users.LoginUserSchema = Depends(),
         user_service: AuthUserService = Depends(get_user_service),
         history_service: HistoryService = Depends(get_history_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
         redis: Redis = Depends(get_redis),
 ) -> dict:
     """User login endpoint by email and password."""
@@ -62,24 +66,30 @@ async def login_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
-    client_id = await history_service.create(
+    user_agent = await history_service.create(
         user_id=user_dto.id,
         device_id=request.headers.get("User-Agent"),
     )
 
     action = await user_service.get_role(user_dto)
 
-    tokens = await password.create_tokens(
-        user_dto.dict(),
-        client_id=client_id,
+    tokens = await auth_service.create_tokens(
+        data=user_dto,
+        user_agent=user_agent,
         actions=action,
         redis=redis,
     )
     response.set_cookie(
-        "access_token", tokens["access_token"], httponly=True, max_age=20
+        key="access_token",
+        value=tokens.access_token,
+        httponly=True,
+        max_age=settings.auth_jwt.access_token_lifetime,
     )
     response.set_cookie(
-        "refresh_token", tokens["refresh_token"], httponly=True, max_age=40
+        key="refresh_token",
+        value=tokens.refresh_token,
+        httponly=True,
+        max_age=settings.auth_jwt.refresh_token_lifetime,
     )
     return {"detail": "login successful"}
 
@@ -94,10 +104,11 @@ async def login_user(
 async def change_password(
         access_token: str | None = Cookie(None),
         user_service: AuthUserService = Depends(get_user_service),
+        auth_service :AuthJWT = Depends(get_auth_jwt),
         password_data: users.ChangePasswordSchema = Depends(),
 ) -> dict:
     """Change password by access token."""
-    user_info = await password.decode_token(access_token)
+    user_info = await auth_service.decode_jwt(access_token)
     await user_service.update(user_info['sub'], password_data)
     return {"detail": "Successfully changed password."}
 
@@ -110,10 +121,12 @@ async def change_password(
 async def refresh_token(
         response: Response,
         refresh_token: str = Cookie(None),
+        user_service: AuthUserService = Depends(get_user_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
         redis: Redis = Depends(get_redis),
 ) -> dict:
     """Get new access and refresh tokens."""
-    if not await password.check_refresh_token(
+    if not await auth_service.check_refresh_token(
             refresh_token,
             redis,
     ):
@@ -121,21 +134,30 @@ async def refresh_token(
             detail="Incorrect token.",
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
-    user_info = await password.decode_token(refresh_token)
-    user_role = 'default'
-    client_id = user_info["client_id"]
-    _new_tokens = await password.create_tokens(
-        user_info,
-        client_id=client_id,
-        role=user_role,
-        redis=redis
+    user_info = await auth_service.decode_jwt(refresh_token)
+    user_info = jwt_schemas.RefreshJWTSchema(**user_info)
+    action = await user_service.get_role(user_info)
+
+    user_agent = user_info.client_id
+
+    _new_tokens = await auth_service.create_tokens(
+        data=user_info,
+        user_agent=user_agent,
+        actions=action,
+        redis=redis,
     )
-    await password.delete_refresh_token(refresh_token, redis)
+    await auth_service.delete_refresh_token(refresh_token, redis)
     response.set_cookie(
-        "access_token", _new_tokens["access_token"], httponly=True, max_age=20
+        key="access_token",
+        value=_new_tokens.access_token,
+        httponly=True,
+        max_age=settings.auth_jwt.access_token_lifetime,
     )
     response.set_cookie(
-        "refresh_token", _new_tokens["refresh_token"], httponly=True, max_age=40
+        key="refresh_token",
+        value=_new_tokens.refresh_token,
+        httponly=True,
+        max_age=settings.auth_jwt.refresh_token_lifetime,
     )
     return {"detail": "Successfully refresh"}
 
@@ -147,14 +169,14 @@ async def refresh_token(
 )
 async def logout_user(
         response: Response,
-        access_token: str | None = Cookie(None),
         refresh_token: str | None = Cookie(None),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
         history_service: HistoryService = Depends(get_history_service),
         redis: Redis = Depends(get_redis),
 ) -> dict:
     """Logout endpoint by access token."""
-    user_info = await password.decode_token(refresh_token)
-    delite = await password.delete_refresh_token(refresh_token, redis)
+    user_info = await auth_service.decode_jwt(refresh_token)
+    delite = await auth_service.delete_refresh_token(refresh_token, redis)
     if not delite:
         raise HTTPException(
             detail='Incorrect command.',
@@ -175,9 +197,10 @@ async def logout_user(
 @access.check_access_token
 async def get_history(
         access_token: str = Cookie(None),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
         history_service: HistoryService = Depends(get_history_service),
 ) -> list[histories.FullHistorySchema]:
     """Get user history by access token."""
-    user_info = await password.decode_token(access_token)
+    user_info = await auth_service.decode_jwt(access_token)
     list_history = await history_service.get(user_info['sub'])
     return list_history

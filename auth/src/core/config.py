@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from logging import config as logging_config
 from dotenv import find_dotenv, load_dotenv
 from pydantic import Field
@@ -28,6 +29,23 @@ class CommonSettings(_BaseSettings):
     debug_mode: bool = Field(
         default=False,
         description="Режим отладки сервиса авторизации",
+    )
+
+
+class AuthJWTSettings(_BaseSettings):
+    private_key: Path = Path(__file__).parent / 'certs' / 'private.pem'
+    public_key: Path = Path(__file__).parent / 'certs' / 'public.pem'
+    auth_algorithm_password: str = Field(
+        default='RS256',
+        description='Алгоритм шифрования токена',
+    )
+    access_token_lifetime: int = Field(
+        default=3600,
+        description='Время жизни access токенов в секундах',
+    )
+    refresh_token_lifetime: int = Field(
+        default=86400,
+        description='Время жизни refresh токена в секундах',
     )
 
 
@@ -97,14 +115,11 @@ class BackendSettings(_BaseSettings):
     auth_refresh_token_lifetime: int = Field(
         default='1'
     )
-    auth_algorithm_password: str = Field(
-        default='HS256',
-        description='Алгоритм шифрования токена',
-    )
 
 
 class Settings(CommonSettings):
     backend: BackendSettings = BackendSettings()
+    auth_jwt: AuthJWTSettings = AuthJWTSettings()
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
 
