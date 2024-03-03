@@ -34,7 +34,7 @@ services:
     env_file: .env
     restart: on-failure
     build: ../../.
-    image: auth-fastapi
+    image: auth-fastapi-test
     networks:
       - auth_test_network
     depends_on:
@@ -43,17 +43,17 @@ services:
 
   tests:
     container_name: auth-tests
-    image: auth-fastapi
+    image: auth-fastapi-test
     env_file: .env
     environment:
-      PYTHONPATH: /opt:/opt/src
-      PROJECT_NAME: "auth-test"
+#      PYTHONPATH: /opt:/opt/src
+      PROJECT_NAME: "auth-tests"
       REDIS_DSN: "http://redis:${AUTH_REDIS_PORT}"
-      entrypoint: >
-        sh -c "pip install --no-cache-dir -r tests/functional/requirements.txt
-          && python tests/functional/utils/wait_for_postgres.py
-          && python tests/functional/utils/wait_for_redis.py"
-          && pytest -p no:cacheprovider tests/functional/src"
+    entrypoint: >
+      sh -c "pip install --no-cache-dir -r tests/functional/requirements.txt
+      && python tests/functional/utils/wait_for_postgres.py
+      && python tests/functional/utils/wait_for_redis.py
+      && pytest"
     depends_on:
       - postgres
       - redis
