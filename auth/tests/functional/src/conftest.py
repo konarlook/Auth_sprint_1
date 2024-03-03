@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from yarl import URL
 
 from tests.functional.core.settings import test_settings
+from tests.functional.utils.db_helpers import drop_all_tables
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -20,6 +21,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 def pg_migrate(alembconfig_from_url):
+    drop_all_tables()
     upgrade(alembconfig_from_url, "head")
 
 
@@ -43,7 +45,7 @@ async def sqlalchemy_session():
 @pytest_asyncio.fixture(name="redis_client", scope="session")
 async def redis_client():
     redis_client = Redis(
-        host="localhost",
+        host=test_settings.redis_host,
         port=test_settings.redis_port,
         db=test_settings.redis_database,
     )

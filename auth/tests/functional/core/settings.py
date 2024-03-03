@@ -27,7 +27,7 @@ class TestSettings(BaseSettings):
     @property
     def database_url_psycopg(self) -> PostgresDsn:
         return PostgresDsn.build(
-            scheme="postgresql+psycopg",
+            scheme="postgresql",
             username=self.postgres_user,
             password=self.postgres_password,
             host=self.postgres_host,
