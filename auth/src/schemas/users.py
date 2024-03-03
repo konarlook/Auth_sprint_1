@@ -11,7 +11,8 @@ class LoginUserSchema(UserBaseSchema):
     hashed_password: str
 
 
-class ChangePasswordSchema(LoginUserSchema):
+class ChangePasswordSchema(BaseSchema):
+    old_password: str
     new_password: str
 
 
