@@ -48,6 +48,11 @@ class AuthUserService(BaseService):
             return None
         return response
 
+    async def get_role(self, user_dto):
+        user_id = user_dto.id
+        response = await self.database_client.get_role_bu_user_id(user_id)
+        return response
+
 
 def get_user_service(
         database_client: UserDataRepository = Depends(get_database_client),

@@ -45,11 +45,11 @@ async def create_token(data: dict,
     return encoded_jwt
 
 
-async def create_access_token(data: dict, role: str, client_id: str):
+async def create_access_token(data: dict, actions: str, client_id: str):
     """Function for creating access token."""
     access_token_data = {
         'sub': str(data['id']),
-        'role': role,
+        'actions': actions,
     }
     access_token = await create_token(
         data=access_token_data,
@@ -70,10 +70,10 @@ async def create_refresh_token(_id: UUID, client_id: str, redis: Redis) -> str:
     return refresh_token
 
 
-async def create_tokens(data: dict, *, client_id: str, role: str, redis) -> dict:
+async def create_tokens(data: dict, *, client_id: str, actions: str, redis) -> dict:
     _access_token = await create_access_token(
         data=data,
-        role=role,
+        actions=actions,
         client_id=client_id
     )
     _refresh_token = await create_refresh_token(
