@@ -11,3 +11,5 @@ local.json
 local.txt
 local_code.py
 fastapi
+
+/auth/src/core/certs/*.pem
