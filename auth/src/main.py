@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+from dotenv import find_dotenv, load_dotenv
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -9,6 +10,8 @@ from redis.asyncio import Redis
 from core.config import settings
 from core.logger import LOGGING
 from api.v1 import users, roles
+
+load_dotenv(find_dotenv())
 
 
 @asynccontextmanager
@@ -33,15 +36,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
 app.include_router(router=users.router)
 app.include_router(router=roles.router)
 
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
-        host="0.0.0.0",  # settings.backend.backend_host,
-        port=8888,  # settings.backend.backend_port,
+        host=settings.backend.backend_host,
+        port=settings.backend.backend_port,
         reload=True,
         log_config=LOGGING,
         log_level=logging.DEBUG,
