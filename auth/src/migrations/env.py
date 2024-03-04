@@ -4,7 +4,6 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from core.config import settings
 from models.base import Base  # noqa
 from models.auth_orm_models import *  # noqa
 
@@ -14,9 +13,6 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
-config.set_main_option(
-    "sqlalchemy.url", settings.postgres.database_url_asyncpg + "?async_fallback=True"
-)
 
 
 def run_migrations_offline() -> None:

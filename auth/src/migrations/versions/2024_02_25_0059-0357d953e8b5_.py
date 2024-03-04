@@ -120,7 +120,9 @@ def upgrade() -> None:
             comment="Дата logout пользователя",
         ),
         sa.Column("user_id", sa.Uuid(), nullable=False, comment="ID пользователя"),
-        sa.Column("device_id", sa.Integer(), nullable=True, comment="ID устройства"),
+        sa.Column(
+            "device_id", sa.String(length=256), nullable=True, comment="ID устройства"
+        ),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["user_data.id"],
