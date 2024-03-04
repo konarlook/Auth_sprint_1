@@ -95,7 +95,7 @@ async def login_user(
 
 
 @router.put(
-    path='/change-password/',
+    path='/change_password/',
     status_code=status.HTTP_200_OK,
     summary='Изменение пароля',
     description='Изменить пароль по access token',
@@ -104,7 +104,7 @@ async def login_user(
 async def change_password(
         access_token: str | None = Cookie(None),
         user_service: AuthUserService = Depends(get_user_service),
-        auth_service :AuthJWT = Depends(get_auth_jwt),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
         password_data: users.ChangePasswordSchema = Depends(),
 ) -> dict:
     """Change password by access token."""
@@ -118,7 +118,7 @@ async def change_password(
     summary="Обновления refresh token",
     description="Получение новых access token и refresh token",
 )
-async def refresh_token(
+async def refresh(
         response: Response,
         refresh_token: str = Cookie(None),
         user_service: AuthUserService = Depends(get_user_service),
@@ -167,7 +167,7 @@ async def refresh_token(
     summary="Выход из профиля",
     description="Выход из профиля по refresh token",
 )
-async def logout_user(
+async def logout(
         response: Response,
         refresh_token: str | None = Cookie(None),
         auth_service: AuthJWT = Depends(get_auth_jwt),
@@ -195,7 +195,7 @@ async def logout_user(
     description='Получение истории пользователя по access token',
 )
 @access.check_access_token
-async def get_history(
+async def history(
         access_token: str = Cookie(None),
         auth_service: AuthJWT = Depends(get_auth_jwt),
         history_service: HistoryService = Depends(get_history_service),

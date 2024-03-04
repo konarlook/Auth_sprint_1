@@ -1,16 +1,16 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Cookie
 
 from services.person import PersonService, get_person_service
 from models.models import Person, Film, Page
 from models.request_models import SearchByPerson, BaseModelPaginationFilter
+from helpers import access
 
 router = APIRouter()
 
 
-# TODO(MosyaginGrigorii): Возможно, имеет смысл добавить фильтрацию
 @router.get(
     "/persons/{person_id}",
     response_model=Person,
@@ -19,9 +19,10 @@ router = APIRouter()
     response_description="Информация о персоне",
     tags=["Страница персонажа"],
 )
+@access.check_access_token
 async def persons_list(
-    person_id: UUID,
-    genre_service: PersonService = Depends(get_person_service),
+        person_id: UUID,
+        genre_service: PersonService = Depends(get_person_service),
 ) -> Person:
     response_person = await genre_service.get_by_id(entity_id=person_id)
     if not response_person:
@@ -30,7 +31,6 @@ async def persons_list(
     return response_person
 
 
-# TODO(MosyaginGrigorii): Тут ломается из-за url, нужно поправить
 @router.get(
     "/personss/search",
     response_model=Page[Person],
@@ -39,9 +39,11 @@ async def persons_list(
     response_description="Список персон",
     tags=["Поиск"],
 )
+@access.check_access_token
 async def search_persons(
-    query_params: SearchByPerson = Depends(),
-    person_service: PersonService = Depends(get_person_service),
+        query_params: SearchByPerson = Depends(),
+        person_service: PersonService = Depends(get_person_service),
+        access_token: str = Cookie(None),
 ) -> Page[Person] | None:
     response_persons = await person_service.search_persons_by_query(
         query_params.query, query_params.page_size, query_params.page_number
@@ -59,10 +61,12 @@ async def search_persons(
     response_description="Список фильмов",
     tags=["Страница персонажа"],
 )
+@access.check_access_token
 async def films_by_person(
-    person_id: UUID,
-    query_params: BaseModelPaginationFilter = Depends(),
-    person_service: PersonService = Depends(get_person_service),
+        person_id: UUID,
+        query_params: BaseModelPaginationFilter = Depends(),
+        person_service: PersonService = Depends(get_person_service),
+        access_token: str = Cookie(None),
 ) -> Page[Film] | None:
     response_film = await person_service.get_list_films_by_person(
         person_id, query_params.page_size, query_params.page_number

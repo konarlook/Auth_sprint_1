@@ -79,6 +79,31 @@ def upgrade() -> None:
                 "action_name": "check_role",
                 "comment": "Проверка роли у пользователя",
             },
+            {
+                "id": "ccd53c23-f3ea-494b-bc28-248cb8586835",
+                "action_name": "films_by_similar_genre",
+                "comment": "Поиск кинопроизведений по схожести жанра",
+            },
+            {
+                "id": "e2763c8a-ae85-4414-8ca9-858f91d826a1",
+                "action_name": "film_details",
+                "comment": "Поиск кинопроизведения по id",
+            },
+            {
+                "id": "d87d3e4e-830a-4376-a49b-402de653435b",
+                "action_name": "persons_list",
+                "comment": "Получить информацию о персоне",
+            },
+            {
+                "id": "c44cc2b3-5ae6-4013-98b2-966652720207",
+                "action_name": "search_persons",
+                "comment": "Поиск по персоне",
+            },
+            {
+                "id": "3f2124b0-858e-41a6-a8a9-cae36192b945",
+                "action_name": "films_by_person",
+                "comment": "Получение списка фильмов персоны",
+            },
         ],
     )
     # ### end Alembic commands ###
