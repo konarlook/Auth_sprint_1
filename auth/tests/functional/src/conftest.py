@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import aiohttp
 import pytest_asyncio
@@ -83,14 +84,21 @@ def make_get_request(aiohttp_session):
 
 @pytest_asyncio.fixture(name="make_post_request")
 def make_post_request(aiohttp_session):
-    async def inner(url: str, query_data: dict, cookie=None):
+    async def inner(url: str, query_data: dict, cookie=None, query_body: dict = None):
+        header = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
         kwarg = {
             "url": url,
             "params": query_data,
             "raise_for_status": True,
+            "headers": header,
+            "data": json.dumps(query_body)
         }
         if cookie:
             kwarg["cookies"] = {"refresh_token": cookie["refresh_token"].value}
+
         async with aiohttp_session.post(**kwarg) as response:
             return await response.json(), response.status, response.cookies
 
@@ -102,9 +110,27 @@ def make_put_request(aiohttp_session):
     async def inner(url: str, query_data: dict, cookies=None):
         cookie = {"access_token": cookies["access_token"].value}
         url = str(URL(url).with_query(query_data)).replace("+", "")
+
         async with aiohttp_session.put(
-            url, raise_for_status=True, cookies=cookie
+                url, raise_for_status=True, cookies=cookie
         ) as response:
+            return await response.json(), response.status, response.cookies
+
+    return inner
+
+
+@pytest_asyncio.fixture(name="make_delete_request")
+def make_delete_request(aiohttp_session):
+    async def inner(url, query_data: dict, cookies=None):
+        kwarg = {
+            "url": url,
+            "params": query_data,
+            "raise_for_status": True,
+        }
+        if cookies:
+            kwarg["cookies"] = {"refresh_token": cookies["refresh_token"].value}
+
+        async with aiohttp_session.delete(**kwarg) as response:
             return await response.json(), response.status, response.cookies
 
     return inner

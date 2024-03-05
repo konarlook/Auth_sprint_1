@@ -35,6 +35,8 @@ services:
     restart: on-failure
     build: ../../.
     image: auth-fastapi-test
+    ports:
+      - "8000:8000"
     networks:
       - auth_test_network
     depends_on:
