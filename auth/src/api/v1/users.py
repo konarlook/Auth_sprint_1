@@ -39,13 +39,13 @@ async def create_user(
             detail="User already exists",
             status_code=status.HTTP_409_CONFLICT,
         )
-
-    request_username = await user_service.get_by_username(username=user_dto.user_name)
-    if request_username:
-        raise HTTPException(
-            detail="Username already exists.",
-            status_code=status.HTTP_409_CONFLICT,
-        )
+    if user_dto.user_name:
+        request_username = await user_service.get_by_username(username=user_dto.user_name)
+        if request_username:
+            raise HTTPException(
+                detail="Username already exists.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
 
     user_encode = await user_service.create(user_dto=user_dto)
     user = users.UserBaseSchema(email=user_encode["email"])
