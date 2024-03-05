@@ -115,6 +115,9 @@ class BackendSettings(_BaseSettings):
     auth_refresh_token_lifetime: int = Field(
         default='1'
     )
+    auth_admin_email: str = Field(default='admin@admin.ru')
+    auth_admin_username: str = Field(default='admin')
+    auth_admin_password: str = Field(default='admin')
 
 
 class Settings(CommonSettings):

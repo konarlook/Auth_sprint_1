@@ -7,10 +7,10 @@ from services.genre import GenreService, get_genre_service
 from models.models import Genre, Page
 from models.request_models import BaseModelPaginationFilter
 
+
 router = APIRouter()
 
 
-# TODO(MosyaginGrigorii): Возможно, имеет смысл добавить фильтрацию
 @router.get(
     "/genres/",
     response_model=Page[Genre],
