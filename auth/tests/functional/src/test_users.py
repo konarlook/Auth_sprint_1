@@ -204,9 +204,7 @@ async def test_change_password(
             url_change, query_data_change, cookies_login
         )
         await make_post_request(
-            url_logout,
-            {},
-            cookies_login,
+            url_logout, {}, cookies_login,
         )
         assert expected_answer["status"] == status_change
         assert expected_answer["details"] == response_change["detail"]

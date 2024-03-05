@@ -16,8 +16,8 @@ from helpers.password import get_password_hash
 
 
 # revision identifiers, used by Alembic.
-revision: str = "121cf3067241"
-down_revision: Union[str, None] = "13b8e5b0ef17"
+revision: str = '121cf3067241'
+down_revision: Union[str, None] = '13b8e5b0ef17'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

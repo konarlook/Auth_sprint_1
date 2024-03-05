@@ -40,9 +40,7 @@ async def create_user(
             status_code=status.HTTP_409_CONFLICT,
         )
     if user_dto.user_name:
-        request_username = await user_service.get_by_username(
-            username=user_dto.user_name
-        )
+        request_username = await user_service.get_by_username(username=user_dto.user_name)
         if request_username:
             raise HTTPException(
                 detail="Username already exists.",
