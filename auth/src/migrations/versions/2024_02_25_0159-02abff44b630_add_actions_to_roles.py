@@ -94,6 +94,21 @@ def upgrade() -> None:
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
                 "action_id": "9e626c81-1dfd-43d5-87d5-26a35b748e95",
             },
+            {
+                "id": uuid.uuid4(),
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": "9e626c81-1dfd-43d5-87d5-26a35b748e95",
+            },
+            {
+                "id": uuid.uuid4(),
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": "cc96fc52-0077-403d-9810-b34db300a855",
+            },
+            {
+                "id": uuid.uuid4(),
+                "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
+                "action_id": "8f02e288-62db-4499-8457-e8aeb12cadef",
+            },
         ],
     )
     # ### end Alembic commands ###

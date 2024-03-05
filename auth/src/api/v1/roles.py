@@ -47,7 +47,7 @@ async def get_roles(
     summary="Изменить существующую роль",
 )
 @access.check_access_token
-async def update_role(
+async def change_role(
         access_token: str | None = Cookie(None),
         role_dto: roles.RoleActionDto = Depends(),
         role_service: AuthRoleService = Depends(get_role_service),

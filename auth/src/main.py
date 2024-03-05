@@ -42,8 +42,8 @@ app.include_router(router=roles.router)
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
-        host=settings.backend.backend_host,
-        port=settings.backend.backend_port,
+        host=settings.backend.auth_backend_host,
+        port=settings.backend.auth_backend_port,
         reload=True,
         log_config=LOGGING,
         log_level=logging.DEBUG,

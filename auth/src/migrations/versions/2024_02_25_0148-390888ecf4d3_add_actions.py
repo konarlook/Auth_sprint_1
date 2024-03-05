@@ -104,6 +104,16 @@ def upgrade() -> None:
                 "action_name": "films_by_person",
                 "comment": "Получение списка фильмов персоны",
             },
+            {
+                "id": "cc96fc52-0077-403d-9810-b34db300a855",
+                "action_name": "verify_role",
+                "comment": "Верифицировать роль пользователя",
+            },
+            {
+                "id": "8f02e288-62db-4499-8457-e8aeb12cadef",
+                "action_name": "update_role",
+                "comment": "Верифицировать роль пользователя",
+            },
         ],
     )
     # ### end Alembic commands ###
