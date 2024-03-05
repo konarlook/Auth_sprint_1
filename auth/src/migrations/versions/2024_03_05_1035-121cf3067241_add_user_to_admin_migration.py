@@ -34,7 +34,7 @@ def upgrade() -> None:
                 "hashed_password": hashed_password,
                 "email": settings.backend.auth_admin_email,
             }
-        ]
+        ],
     )
     op.bulk_insert(
         table=UsersOrm.__table__,
@@ -43,7 +43,7 @@ def upgrade() -> None:
                 "user_id": admin_id,
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
             }
-        ]
+        ],
     )
 
 

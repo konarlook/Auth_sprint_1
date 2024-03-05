@@ -70,9 +70,7 @@ class AuthRoleService(BaseService):
         if not role:
             raise AuthRoleIsNotExistException()
         user = await self.users_repo.get_user_by_email(email=user_role.user_email)
-        db_obj = await self.users_repo.set_role(
-            user_id=user.id, role_id=role.id
-        )
+        db_obj = await self.users_repo.set_role(user_id=user.id, role_id=role.id)
         return db_obj
 
     async def verify(self, user_role: roles.UserRoleDto) -> bool:
