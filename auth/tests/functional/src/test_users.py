@@ -221,15 +221,13 @@ async def test_change_password(
                 "email": "christian_bale@practix.ru",
                 "hashed_password": "practix_password",
             },
-            {
-                "status": status.HTTP_200_OK,
-            },
+            {"status": status.HTTP_200_OK, "detail": "login successful"},
             does_not_raise(),
         ),
     ],
 )
 @pytest.mark.asyncio
-async def test_refresh(
+async def test_history(
     make_post_request,
     make_get_request,
     redis_read_data,
@@ -238,50 +236,16 @@ async def test_refresh(
     expected_answer,
     expectation,
 ):
-    # TODO(MosyaginGrigorii): Добавить рандомные символы в токен
     url_login = test_settings.service_url + "/auth/login"
-    url_change = test_settings.service_url + "/auth/refresh"
+    url_history = test_settings.service_url + "/auth/history"
     with expectation:
         response_login, status_login, cookies_login = await make_post_request(
             url_login, query_data
         )
-        response_change, status_change, cookies_change = await make_get_request(
-            url_change, {}, cookies_login
+        response_history, status_history, cookies_history = await make_get_request(
+            url_history, {}, cookies_login
         )
-        assert expected_answer["status"] == status_change
-
-
-@pytest.mark.parametrize(
-    "query_data, expected_answer, expectation",
-    [
-        (
-            {
-                "email": "christian_bale@practix.ru",
-                "hashed_password": "practix_password",
-            },
-            {"status": status.HTTP_200_OK, "detail": "logout is successfully"},
-            does_not_raise(),
-        ),
-    ],
-)
-@pytest.mark.asyncio
-async def test_logout(
-    make_post_request,
-    redis_read_data,
-    execute_raw_sql,
-    query_data,
-    expected_answer,
-    expectation,
-):
-    # TODO(MosyaginGrigorii): Добавить рандомные символы в токен
-    url_login = test_settings.service_url + "/auth/login"
-    url_change = test_settings.service_url + "/auth/logout"
-    with expectation:
-        response_login, status_login, cookies_login = await make_post_request(
-            url_login, query_data
-        )
-        response_change, status_change, cookies_change = await make_post_request(
-            url_change, {}, cookies_login
-        )
-        assert expected_answer["status"] == status_change
-        assert expected_answer["detail"] == response_change["detail"]
+        assert expected_answer["status"] == status_login
+        assert expected_answer["status"] == status_history
+        assert expected_answer["detail"] == response_login["detail"]
+        assert len(response_history) >= 1
