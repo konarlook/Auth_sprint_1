@@ -27,12 +27,26 @@ async def create_user(
         role_service: AuthRoleService = Depends(get_role_service),
 ) -> users.UserBaseSchema:
     """User registration endpoint by required fields."""
+    if not "".join(user_dto.hashed_password.split()):
+        raise HTTPException(
+            detail="Password must be set.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
     request_email = await user_service.get(email=user_dto.email)
     if request_email:
         raise HTTPException(
             detail="User already exists",
             status_code=status.HTTP_409_CONFLICT,
         )
+
+    request_username = await user_service.get_by_username(username=user_dto.user_name)
+    if request_username:
+        raise HTTPException(
+            detail="Username already exists.",
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
     user_encode = await user_service.create(user_dto=user_dto)
     user = users.UserBaseSchema(email=user_encode["email"])
     await role_service.set_role(

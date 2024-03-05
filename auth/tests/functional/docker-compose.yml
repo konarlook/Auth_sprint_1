@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: ${AUTH_DB_NAME}
       POSTGRES_USER: ${AUTH_DB_USER}
       POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "${AUTH_DB_PORT}:${AUTH_DB_PORT}"
     networks:
       - auth_test_network
 
@@ -22,6 +24,8 @@ services:
       REDIS_PASSWORD: "${AUTH_REDIS_PASSWORD}"
       REDIS_PORT: "${AUTH_REDIS_PORT}"
       REDIS_DATABASE: "${AUTH_REDIS_DATABASES}"
+    ports:
+      - "${AUTH_REDIS_PORT}:${AUTH_REDIS_PORT}"
     networks:
       - auth_test_network
 

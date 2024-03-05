@@ -45,6 +45,18 @@ class UserDataRepository(SQLAlchemyRepository):
             result = None
         return result
 
+    async def get_user_by_username(self, username: str) -> MainInfoUserSchema | None:
+        try:
+            self._statement = select(self._model).where(
+                self._model.user_name == username)
+            raw_result = await self.read_one()
+            result = self.to_pydantic(
+                db_obj=raw_result, pydantic_model=MainInfoUserSchema,
+            )
+        except NoResultFound:
+            result = None
+        return result
+
     async def create_user(self, user_data: CreateUserSchema) -> dict:
         """Create user in database."""
         encode_data = jsonable_encoder(user_data)

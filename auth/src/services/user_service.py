@@ -16,6 +16,9 @@ class AuthUserService(BaseService):
         """Get user information by email."""
         return await self.database_client.get_user_by_email(email)
 
+    async def get_by_username(self, *, username: str):
+        return await self.database_client.get_user_by_username(username)
+
     async def create(self, user_dto) -> dict:
         """Create a new user by requesting email and password."""
         user_dto.hashed_password = get_password_hash(user_dto.hashed_password)
