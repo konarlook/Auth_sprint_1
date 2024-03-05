@@ -74,7 +74,10 @@ def make_get_request(aiohttp_session):
             "raise_for_status": True,
         }
         if cookie:
-            kwarg["cookies"] = {"refresh_token": cookie["refresh_token"].value}
+            kwarg["cookies"] = {
+                "access_token": cookie["access_token"].value,
+                "refresh_token": cookie["refresh_token"].value,
+            }
         async with aiohttp_session.get(**kwarg) as response:
             return await response.json(), response.status, response.cookies
 
