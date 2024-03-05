@@ -1,8 +1,8 @@
-"""add admin to user
+"""add_user_to_admin_migration
 
-Revision ID: 3955ac3a3742
-Revises: 38b0347b107f
-Create Date: 2024-03-04 19:51:01.752837
+Revision ID: 121cf3067241
+Revises: 13b8e5b0ef17
+Create Date: 2024-03-05 10:35:37.259047
 
 """
 import uuid
@@ -16,8 +16,8 @@ from helpers.password import get_password_hash
 
 
 # revision identifiers, used by Alembic.
-revision: str = '3955ac3a3742'
-down_revision: Union[str, None] = '38b0347b107f'
+revision: str = "121cf3067241"
+down_revision: Union[str, None] = "13b8e5b0ef17"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -34,7 +34,7 @@ def upgrade() -> None:
                 "hashed_password": hashed_password,
                 "email": settings.backend.auth_admin_email,
             }
-        ]
+        ],
     )
     op.bulk_insert(
         table=UsersOrm.__table__,
@@ -43,7 +43,7 @@ def upgrade() -> None:
                 "user_id": admin_id,
                 "role_id": "25c245c4-1a06-42c7-bb55-0261a2f743d6",
             }
-        ]
+        ],
     )
 
 

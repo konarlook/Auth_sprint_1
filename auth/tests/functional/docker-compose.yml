@@ -46,7 +46,6 @@ services:
     image: auth-fastapi-test
     env_file: .env
     environment:
-#      PYTHONPATH: /opt:/opt/src
       PROJECT_NAME: "auth-tests"
       REDIS_DSN: "http://redis:${AUTH_REDIS_PORT}"
     entrypoint: >

@@ -44,8 +44,8 @@ from fastapi import status
                 "email": "joseph_gordon_levitt@practix.ru",
                 "hashed_password": "",
             },
-            {"status": status.HTTP_201_CREATED},
-            does_not_raise(),
+            {"status": status.HTTP_422_UNPROCESSABLE_ENTITY},
+            pytest.raises(aiohttp.ClientResponseError),
         ),
         (
             {
@@ -81,7 +81,6 @@ async def test_signup(
     expected_answer,
     expectation,
 ):
-    # TODO(MosyaginGrigorii): Подумать как чистить БД
     url = test_settings.service_url + "/auth/signup"
     with expectation:
         response, status, _ = await make_post_request(url, query_data)
@@ -195,13 +194,19 @@ async def test_change_password(
     expectation,
 ):
     url_login = test_settings.service_url + "/auth/login"
-    url_change = test_settings.service_url + "/auth/change-password"
+    url_change = test_settings.service_url + "/auth/change_password"
+    url_logout = test_settings.service_url + "/auth/logout"
     with expectation:
         response_login, status_login, cookies_login = await make_post_request(
             url_login, query_data_login
         )
         response_change, status_change, cookies_change = await make_put_request(
             url_change, query_data_change, cookies_login
+        )
+        await make_post_request(
+            url_logout,
+            {},
+            cookies_login,
         )
         assert expected_answer["status"] == status_change
         assert expected_answer["details"] == response_change["detail"]

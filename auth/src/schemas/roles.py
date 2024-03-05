@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class MixinId(BaseModel):
@@ -27,7 +27,7 @@ class UserRoleSchema(BaseModel):
 
 
 class UserRoleDto(BaseModel):
-    user_id: uuid.UUID = Field(title="ID пользователя")
+    user_email: EmailStr = Field(title="Email пользователя")
     role_name: str = Field(title="Имя роли", max_length=50)
 
 

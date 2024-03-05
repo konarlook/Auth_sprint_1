@@ -22,22 +22,38 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     description="Регистрация пользователя по обязательным полям",
 )
 async def create_user(
-        user_dto: users.CreateUserSchema = Depends(),
-        user_service: AuthUserService = Depends(get_user_service),
-        role_service: AuthRoleService = Depends(get_role_service),
+    user_dto: users.CreateUserSchema = Depends(),
+    user_service: AuthUserService = Depends(get_user_service),
+    role_service: AuthRoleService = Depends(get_role_service),
 ) -> users.UserBaseSchema:
     """User registration endpoint by required fields."""
+    if not "".join(user_dto.hashed_password.split()):
+        raise HTTPException(
+            detail="Password must be set.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
     request_email = await user_service.get(email=user_dto.email)
     if request_email:
         raise HTTPException(
             detail="User already exists",
             status_code=status.HTTP_409_CONFLICT,
         )
+    if user_dto.user_name:
+        request_username = await user_service.get_by_username(
+            username=user_dto.user_name
+        )
+        if request_username:
+            raise HTTPException(
+                detail="Username already exists.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+
     user_encode = await user_service.create(user_dto=user_dto)
     user = users.UserBaseSchema(email=user_encode["email"])
     await role_service.set_role(
         user_role=roles.UserRoleDto(
-            user_id=user_encode["id"], role_name=UserRoleEnum.DefaultUser.value
+            user_email=user_encode["email"], role_name=UserRoleEnum.DefaultUser.value
         )
     )
     return user
@@ -50,13 +66,13 @@ async def create_user(
     description="Регистрация пользователя по логину и паролю",
 )
 async def login_user(
-        response: Response,
-        request: Request,
-        user_dto: users.LoginUserSchema = Depends(),
-        user_service: AuthUserService = Depends(get_user_service),
-        history_service: HistoryService = Depends(get_history_service),
-        auth_service: AuthJWT = Depends(get_auth_jwt),
-        redis: Redis = Depends(get_redis),
+    response: Response,
+    request: Request,
+    user_dto: users.LoginUserSchema = Depends(),
+    user_service: AuthUserService = Depends(get_user_service),
+    history_service: HistoryService = Depends(get_history_service),
+    auth_service: AuthJWT = Depends(get_auth_jwt),
+    redis: Redis = Depends(get_redis),
 ) -> dict:
     """User login endpoint by email and password."""
     user_dto = await user_service.check_user(user_dto)
@@ -95,21 +111,21 @@ async def login_user(
 
 
 @router.put(
-    path='/change_password/',
+    path="/change_password/",
     status_code=status.HTTP_200_OK,
-    summary='Изменение пароля',
-    description='Изменить пароль по access token',
+    summary="Изменение пароля",
+    description="Изменить пароль по access token",
 )
 @access.check_access_token
 async def change_password(
-        access_token: str | None = Cookie(None),
-        user_service: AuthUserService = Depends(get_user_service),
-        auth_service: AuthJWT = Depends(get_auth_jwt),
-        password_data: users.ChangePasswordSchema = Depends(),
+    access_token: str | None = Cookie(None),
+    user_service: AuthUserService = Depends(get_user_service),
+    auth_service: AuthJWT = Depends(get_auth_jwt),
+    password_data: users.ChangePasswordSchema = Depends(),
 ) -> dict:
     """Change password by access token."""
     user_info = await auth_service.decode_jwt(access_token)
-    await user_service.update(user_info['sub'], password_data)
+    await user_service.update(user_info["sub"], password_data)
     return {"detail": "Successfully changed password."}
 
 
@@ -119,16 +135,16 @@ async def change_password(
     description="Получение новых access token и refresh token",
 )
 async def refresh(
-        response: Response,
-        refresh_token: str = Cookie(None),
-        user_service: AuthUserService = Depends(get_user_service),
-        auth_service: AuthJWT = Depends(get_auth_jwt),
-        redis: Redis = Depends(get_redis),
+    response: Response,
+    refresh_token: str = Cookie(None),
+    user_service: AuthUserService = Depends(get_user_service),
+    auth_service: AuthJWT = Depends(get_auth_jwt),
+    redis: Redis = Depends(get_redis),
 ) -> dict:
     """Get new access and refresh tokens."""
     if not await auth_service.check_refresh_token(
-            refresh_token,
-            redis,
+        refresh_token,
+        redis,
     ):
         raise HTTPException(
             detail="Incorrect token.",
@@ -168,39 +184,39 @@ async def refresh(
     description="Выход из профиля по refresh token",
 )
 async def logout(
-        response: Response,
-        refresh_token: str | None = Cookie(None),
-        auth_service: AuthJWT = Depends(get_auth_jwt),
-        history_service: HistoryService = Depends(get_history_service),
-        redis: Redis = Depends(get_redis),
+    response: Response,
+    refresh_token: str | None = Cookie(None),
+    auth_service: AuthJWT = Depends(get_auth_jwt),
+    history_service: HistoryService = Depends(get_history_service),
+    redis: Redis = Depends(get_redis),
 ) -> dict:
     """Logout endpoint by access token."""
     user_info = await auth_service.decode_jwt(refresh_token)
     delite = await auth_service.delete_refresh_token(refresh_token, redis)
     if not delite:
         raise HTTPException(
-            detail='Incorrect command.',
+            detail="Incorrect command.",
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
-    await history_service.update(user_info['client_id'])
+    await history_service.update(user_info["client_id"])
     return {"detail": "logout is successfully"}
 
 
 @router.get(
-    path='/history/',
+    path="/history/",
     response_model=list[histories.FullHistorySchema],
-    summary='Получение пользовательской истории',
-    description='Получение истории пользователя по access token',
+    summary="Получение пользовательской истории",
+    description="Получение истории пользователя по access token",
 )
 @access.check_access_token
 async def history(
-        access_token: str = Cookie(None),
-        auth_service: AuthJWT = Depends(get_auth_jwt),
-        history_service: HistoryService = Depends(get_history_service),
+    access_token: str = Cookie(None),
+    auth_service: AuthJWT = Depends(get_auth_jwt),
+    history_service: HistoryService = Depends(get_history_service),
 ) -> list[histories.FullHistorySchema]:
     """Get user history by access token."""
     user_info = await auth_service.decode_jwt(access_token)
-    list_history = await history_service.get(user_info['sub'])
+    list_history = await history_service.get(user_info["sub"])
     return list_history
