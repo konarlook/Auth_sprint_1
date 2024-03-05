@@ -51,7 +51,7 @@ async def create_user(
     user = users.UserBaseSchema(email=user_encode["email"])
     await role_service.set_role(
         user_role=roles.UserRoleDto(
-            user_id=user_encode["id"], role_name=UserRoleEnum.DefaultUser.value
+            user_email=user_encode["email"], role_name=UserRoleEnum.DefaultUser.value
         )
     )
     return user

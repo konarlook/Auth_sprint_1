@@ -15,6 +15,7 @@ from schemas.users import (
     FullInfoUserSchema,
     MainInfoUserSchema,
 )
+from schemas import roles
 
 
 class UserDataRepository(SQLAlchemyRepository):
@@ -86,6 +87,27 @@ class UserDataRepository(SQLAlchemyRepository):
         action_names = results.scalars().all()
 
         return action_names
+
+    async def set_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> UsersOrm | None:
+        self._model = UsersOrm
+        user_role = UsersOrm(user_id=user_id, role_id=role_id)
+        db_obj = await self.merge(
+            {
+                "user_id": user_role.user_id,
+                "role_id": user_role.role_id,
+            }
+        )
+        return db_obj
+
+    async def get_role_by_user(self, user_role: roles.UserRoleDto) -> str | None:
+        self._statement = (
+            select(RolesOrm.role_name)
+            .join(UsersOrm, UsersOrm.role_id == RolesOrm.id)
+            .join(UserDataOrm, UserDataOrm.id == UsersOrm.user_id)
+            .where(UserDataOrm.email == user_role.user_email)
+        )
+        role = await self.read_one()
+        return role
 
 
 def get_database_client(session: AsyncSession = Depends(get_db_session)):

@@ -11,7 +11,7 @@ from repositories.mixactions_repository import (
     MixActionsRepository,
 )
 from repositories.roles_repository import RolesRepository, get_roles_repository
-from repositories.users_repository import UsersRepository, get_users_repository
+from repositories.user_data_repository import UserDataRepository, get_database_client
 from schemas import roles
 from services.base_service import BaseService
 
@@ -19,7 +19,7 @@ from services.base_service import BaseService
 class AuthRoleService(BaseService):
     def __init__(
         self,
-        users_repo: UsersRepository,
+        users_repo: UserDataRepository,
         roles_repo: RolesRepository,
         mix_actions_repo: MixActionsRepository,
         action_repo: ActionsRepository,
@@ -34,7 +34,6 @@ class AuthRoleService(BaseService):
         role_exist = await self.roles_repo.get_role_by_name(role_name=role.role_name)
         if role_exist:
             raise AuthRoleIsExistException()
-        # TODO(MosyaginGrigorii): Подумать как сделать транзакцию, пока не получается из-за разных сессий
         action_names = [i[0] for i in role.actions[0] if i[-1]]
         roles_db_obj = await self.action_repo.get_actions_by_names(action_names)
         roles_ids = [row.id for row in roles_db_obj]
@@ -70,8 +69,9 @@ class AuthRoleService(BaseService):
         role = await self.roles_repo.get_role_by_name(role_name=user_role.role_name)
         if not role:
             raise AuthRoleIsNotExistException()
+        user = await self.users_repo.get_user_by_email(email=user_role.user_email)
         db_obj = await self.users_repo.set_role(
-            user_id=user_role.user_id, role_id=role.id
+            user_id=user.id, role_id=role.id
         )
         return db_obj
 
@@ -85,7 +85,7 @@ class AuthRoleService(BaseService):
 
 
 def get_role_service(
-    users_repo: UsersRepository = Depends(get_users_repository),
+    users_repo: UserDataRepository = Depends(get_database_client),
     roles_repo: RolesRepository = Depends(get_roles_repository),
     mix_actions_repo: MixActionsRepository = Depends(get_mix_actions_repository),
     action_repo: ActionsRepository = Depends(get_actions_repository),
