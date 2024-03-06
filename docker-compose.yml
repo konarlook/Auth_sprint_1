@@ -1,5 +1,4 @@
-# docker-compose.yml
-version: '3'
+version: '3.9'
 
 services:
   postgres_auth:
@@ -8,8 +7,6 @@ services:
     hostname: postgres_auth
     restart: always
     env_file: .env
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: ${AUTH_DB_NAME}
       POSTGRES_USER: ${AUTH_DB_USER}
@@ -34,8 +31,6 @@ services:
     hostname: redis_auth
     image: redis:latest
     env_file: .env
-    ports:
-      - "6379:6379"
     restart: always
     volumes:
       - /redis_auth/dаta:/root/redis
@@ -71,8 +66,6 @@ services:
       - static_data:/opt/app/static
       - media_data:/opt/app/media
     build: ./app
-    expose:
-      - "${BACKEND_DJANGO_PORT}"
     networks:
      - network_project
     depends_on:
@@ -83,8 +76,6 @@ services:
     env_file: .env
     restart: unless-stopped
     build: movies
-    expose:
-      - "${BACKEND_FASTAPI_PORT}"
     networks:
      - network_project
      - auth_network
@@ -110,18 +101,6 @@ services:
       - backend
       - fastapi
       - elastic
-
-  redisvue:
-    image: rediscommander/redis-commander:latest
-    container_name: redisvue
-    environment:
-      - REDIS_HOSTS=local:redis:${REDIS_PORT}
-    ports:
-      - "${REDIS_VUE_PORT}:${REDIS_VUE_PORT}"
-    depends_on:
-      - redis
-    networks:
-     - network_project
 
   nginx:
     container_name: nginx
@@ -151,8 +130,6 @@ services:
       - http.cors.enabled=true
       - http.cors.allow-origin=http://localhost:8080
     env_file: .env
-    ports:
-      - "${ELASTIC_PORT}:${ELASTIC_PORT}"
     networks:
      - network_project
     depends_on:
@@ -169,17 +146,6 @@ services:
       - backend
       - nginx
       - elastic
-
-  elasticvue:
-    image: cars10/elasticvue:1.0.1
-    container_name: elasticvue
-    ports:
-      - "${ELASTIC_PORT_VUE}:${ELASTIC_PORT_VUE}"
-    networks:
-     - network_project
-    depends_on:
-      - elastic
-      - etl
 
 volumes:
   db_data:
