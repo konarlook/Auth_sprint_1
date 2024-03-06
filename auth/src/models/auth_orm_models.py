@@ -12,7 +12,9 @@ class UsersOrm(Base):
     __table_args__ = {"comment": "Таблица пользователь - роль"}
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user_data.id"), primary_key=True, comment="ID пользователя"
+        ForeignKey("user_data.id", ondelete="CASCADE"),
+        primary_key=True,
+        comment="ID пользователя"
     )
     role_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("roles.id"), comment="ID роли"
@@ -106,6 +108,7 @@ class AuthHistotyOrm(Base):
         comment="Дата logout пользователя", nullable=True
     )
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("user_data.id"), comment="ID пользователя"
+        ForeignKey("user_data.id", ondelete="CASCADE"),
+        comment="ID пользователя"
     )
     device_id: Mapped[str_256] = mapped_column(comment="Устройства", nullable=True)
