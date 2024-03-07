@@ -46,7 +46,7 @@ async def sqlalchemy_session():
 @pytest_asyncio.fixture(name="redis_client", scope="session")
 async def redis_client():
     redis_client = Redis(
-        host="localhost",
+        host=test_settings.redis_host,
         port=test_settings.redis_port,
         db=test_settings.redis_database,
     )

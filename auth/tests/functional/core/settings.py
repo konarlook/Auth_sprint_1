@@ -19,7 +19,7 @@ class TestSettings(BaseSettings):
         return "postgresql+asyncpg://{}:{}@{}:{}/{}".format(
             self.postgres_user,
             self.postgres_password,
-            "localhost",
+            self.postgres_host,
             self.postgres_port,
             self.postgres_database,
         )
@@ -30,7 +30,7 @@ class TestSettings(BaseSettings):
             scheme="postgresql",
             username=self.postgres_user,
             password=self.postgres_password,
-            host="localhost",
+            host=self.postgres_host,
             port=self.postgres_port,
             path=self.postgres_database,
         )
