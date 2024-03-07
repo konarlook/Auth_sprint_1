@@ -204,7 +204,9 @@ async def test_change_password(
             url_change, query_data_change, cookies_login
         )
         await make_post_request(
-            url_logout, {}, cookies_login,
+            url_logout,
+            {},
+            cookies_login,
         )
         assert expected_answer["status"] == status_change
         assert expected_answer["details"] == response_change["detail"]
@@ -286,12 +288,16 @@ async def test_logout(
 
 
 @pytest.mark.parametrize(
-    "query_data, expected_answer, expectation",
+    "query_data, query_data_history, expected_answer, expectation",
     [
         (
             {
                 "email": "christian_bale@practix.ru",
                 "hashed_password": "practix_password",
+            },
+            {
+                "page_size": 10,
+                "page_number": 1,
             },
             {"status": status.HTTP_200_OK, "detail": "login successful"},
             does_not_raise(),
@@ -305,6 +311,7 @@ async def test_history(
     redis_read_data,
     execute_raw_sql,
     query_data,
+    query_data_history,
     expected_answer,
     expectation,
 ):
@@ -315,9 +322,9 @@ async def test_history(
             url_login, query_data
         )
         response_history, status_history, cookies_history = await make_get_request(
-            url_history, {}, cookies_login
+            url_history, query_data_history, cookies_login
         )
         assert expected_answer["status"] == status_login
         assert expected_answer["status"] == status_history
         assert expected_answer["detail"] == response_login["detail"]
-        assert len(response_history) >= 1
+        assert len(response_history.get("response")) >= 1
