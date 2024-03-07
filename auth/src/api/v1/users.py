@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
 from redis.asyncio import Redis
 
-from schemas import users, roles, histories, jwt_schemas
-from services.role_service import AuthRoleService, get_role_service
-from services.user_service import AuthUserService, get_user_service
-from services.history_service import HistoryService, get_history_service
-from services.auth_service import AuthJWT, get_auth_jwt
-from helpers import access
-from db.redis import get_redis
 from core.config import settings
 from core.constants import UserRoleEnum
+from db.redis import get_redis
+from helpers import access
+from schemas import histories
+from schemas import users, roles, jwt_schemas
+from schemas.base import Page
+from services.auth_service import AuthJWT, get_auth_jwt
+from services.history_service import HistoryService, get_history_service
+from services.role_service import AuthRoleService, get_role_service
+from services.user_service import AuthUserService, get_user_service
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -40,7 +42,9 @@ async def create_user(
             status_code=status.HTTP_409_CONFLICT,
         )
     if user_dto.user_name:
-        request_username = await user_service.get_by_username(username=user_dto.user_name)
+        request_username = await user_service.get_by_username(
+            username=user_dto.user_name
+        )
         if request_username:
             raise HTTPException(
                 detail="Username already exists.",
@@ -204,7 +208,7 @@ async def logout(
 
 @router.get(
     path="/history/",
-    response_model=list[histories.FullHistorySchema],
+    response_model=Page[histories.FullHistorySchema],
     summary="Получение пользовательской истории",
     description="Получение истории пользователя по access token",
 )
@@ -213,8 +217,9 @@ async def history(
     access_token: str = Cookie(None),
     auth_service: AuthJWT = Depends(get_auth_jwt),
     history_service: HistoryService = Depends(get_history_service),
+    history_data: histories.HistoryRequestSchema = Depends(),
 ) -> list[histories.FullHistorySchema]:
     """Get user history by access token."""
     user_info = await auth_service.decode_jwt(access_token)
-    list_history = await history_service.get(user_info["sub"])
+    list_history = await history_service.get(user_info["sub"], history_data)
     return list_history

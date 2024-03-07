@@ -19,12 +19,12 @@ class _BaseSettings(BaseSettings):
 
 class CommonSettings(_BaseSettings):
     service_name: str = Field(
-        default='auth',
-        description='Название сервиса авторизации',
+        default="auth",
+        description="Название сервиса авторизации",
     )
     base_dir: str = Field(
         default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        description='Корень проекта',
+        description="Корень проекта",
     )
     debug_mode: bool = Field(
         default=False,
@@ -33,37 +33,37 @@ class CommonSettings(_BaseSettings):
 
 
 class AuthJWTSettings(_BaseSettings):
-    private_key: Path = Path(__file__).parent / 'certs' / 'private.pem'
-    public_key: Path = Path(__file__).parent / 'certs' / 'public.pem'
+    private_key: Path = Path(__file__).parent / "certs" / "private.pem"
+    public_key: Path = Path(__file__).parent / "certs" / "public.pem"
     auth_algorithm_password: str = Field(
-        default='RS256',
-        description='Алгоритм шифрования токена',
+        default="RS256",
+        description="Алгоритм шифрования токена",
     )
     access_token_lifetime: int = Field(
         default=3600,
-        description='Время жизни access токенов в секундах',
+        description="Время жизни access токенов в секундах",
     )
     refresh_token_lifetime: int = Field(
         default=86400,
-        description='Время жизни refresh токена в секундах',
+        description="Время жизни refresh токена в секундах",
     )
 
 
 class PostgresSettings(_BaseSettings):
     postgres_host: str = Field(
-        default='postgres_auth',
-        description='Адрес хоста Postgres для модуля авторизации',
+        default="postgres_auth",
+        description="Адрес хоста Postgres для модуля авторизации",
     )
     postgres_port: int = Field(
         default=5432,
-        description='Порт Postgres для сервиса авторизации',
+        description="Порт Postgres для сервиса авторизации",
     )
     postgres_database: str = Field(
-        default='auth',
-        description='База данных для хранения информации пользователей',
+        default="auth",
+        description="База данных для хранения информации пользователей",
     )
-    postgres_user: str = Field(default='auth_user')
-    postgres_password: str = Field(default='auth_pass')
+    postgres_user: str = Field(default="auth_user")
+    postgres_password: str = Field(default="auth_pass")
 
     @property
     def database_url_asyncpg(self):
@@ -78,30 +78,44 @@ class PostgresSettings(_BaseSettings):
 
 class RedisSettings(_BaseSettings):
     auth_redis_host: str = Field(
-        default='redis_auth',
-        description='Адрес хоста Redis для модуля авторизации',
+        default="redis_auth",
+        description="Адрес хоста Redis для модуля авторизации",
     )
     auth_redis_port: int = Field(
         default=6379,
-        description='Порт Redis для сервиса авторизации',
+        description="Порт Redis для сервиса авторизации",
     )
     auth_redis_database: str = Field(
-        default='0',
-        description='База данных для хранения токенов',
+        default="0",
+        description="База данных для хранения токенов",
     )
     auth_redis_password: str = Field(
-        default='auth_pass',
-        description='Пароль от Redis',
+        default="auth_pass",
+        description="Пароль от Redis",
     )
     auth_redis_time: int = Field(
         default=3600,
-        description='Время хранения токенов',
+        description="Время хранения токенов",
     )
+
+
+class PaginationSettings(_BaseSettings):
+    """Base project settings related to pagination parameters."""
+
+    page_size: int = Field(
+        default=50,
+        description="Количество произведений на странице",
+    )
+    max_page_size: int = Field(
+        default=100,
+        description="Максимальное количество произведений на странице",
+    )
+    max_page: int = Field(default=100, description="Максимальное количество страниц")
 
 
 class BackendSettings(_BaseSettings):
     auth_backend_host: str = Field(
-        default='auth',
+        default="auth",
         description="Адрес хоста сервиса авторизации",
     )
     auth_backend_port: int = Field(
@@ -109,15 +123,13 @@ class BackendSettings(_BaseSettings):
         description="Порт сервиса авторизации",
     )
     auth_secret_key: str = Field(
-        default='123qwerty',
-        description='Секретный ключ для генерации токенов',
+        default="123qwerty",
+        description="Секретный ключ для генерации токенов",
     )
-    auth_refresh_token_lifetime: int = Field(
-        default='1'
-    )
-    auth_admin_email: str = Field(default='admin@admin.ru')
-    auth_admin_username: str = Field(default='admin')
-    auth_admin_password: str = Field(default='admin')
+    auth_refresh_token_lifetime: int = Field(default="1")
+    auth_admin_email: str = Field(default="admin@admin.ru")
+    auth_admin_username: str = Field(default="admin")
+    auth_admin_password: str = Field(default="admin")
 
 
 class Settings(CommonSettings):
@@ -125,6 +137,7 @@ class Settings(CommonSettings):
     auth_jwt: AuthJWTSettings = AuthJWTSettings()
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
+    pagination: PaginationSettings = PaginationSettings()
 
 
 settings = Settings()
