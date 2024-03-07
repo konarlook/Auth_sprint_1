@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from schemas.base import BaseModelPaginationFilter
+
 
 class HistoryBase(BaseModel):
     user_id: UUID = Field(comment="Идентификатор пользователя")
@@ -25,4 +27,8 @@ class FullHistorySchema(HistoryBase):
 
 
 class FullIdHistorySchema(IdHistorySchema, FullHistorySchema):
+    pass
+
+
+class HistoryRequestSchema(BaseModelPaginationFilter):
     pass
