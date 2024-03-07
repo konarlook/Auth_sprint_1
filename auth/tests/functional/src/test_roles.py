@@ -288,7 +288,7 @@ async def test_delete_role(
         _response_login, _status_login, _cookies_login = await make_post_request(
             url_login, query_data_login
         )
-        _response_delete, _status_delete, _ = await make_delete_request(
+        _status_delete, _ = await make_delete_request(
             f"{url_delete_role}TestRoleName", {}, _cookies_login
         )
         await make_post_request(url_logout, {}, _cookies_login)

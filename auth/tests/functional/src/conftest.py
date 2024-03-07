@@ -136,7 +136,7 @@ def make_delete_request(aiohttp_session):
             kwarg["cookies"] = {"refresh_token": cookies["refresh_token"].value}
 
         async with aiohttp_session.delete(**kwarg) as response:
-            return await response.json(), response.status, response.cookies
+            return response.status, response.cookies
 
     return inner
 
