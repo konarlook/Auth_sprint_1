@@ -46,7 +46,7 @@ async def sqlalchemy_session():
 @pytest_asyncio.fixture(name="redis_client", scope="session")
 async def redis_client():
     redis_client = Redis(
-        host=test_settings.redis_host,
+        host="localhost",
         port=test_settings.redis_port,
         db=test_settings.redis_database,
     )
@@ -88,16 +88,13 @@ def make_get_request(aiohttp_session):
 @pytest_asyncio.fixture(name="make_post_request")
 def make_post_request(aiohttp_session):
     async def inner(url: str, query_data: dict, cookie=None, query_body: dict = None):
-        header = {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
+        header = {"accept": "application/json", "Content-Type": "application/json"}
         kwarg = {
             "url": url,
             "params": query_data,
             "raise_for_status": True,
             "headers": header,
-            "data": json.dumps(query_body)
+            "data": json.dumps([query_body]),
         }
         if cookie:
             kwarg["cookies"] = {"refresh_token": cookie["refresh_token"].value}
@@ -110,13 +107,18 @@ def make_post_request(aiohttp_session):
 
 @pytest_asyncio.fixture(name="make_put_request")
 def make_put_request(aiohttp_session):
-    async def inner(url: str, query_data: dict, cookies=None):
-        cookie = {"access_token": cookies["access_token"].value}
-        url = str(URL(url).with_query(query_data)).replace("+", "")
+    async def inner(url: str, query_data: dict, cookie=None, query_body: dict = None):
+        header = {"accept": "application/json", "Content-Type": "application/json"}
+        kwarg = {
+            "url": str(URL(url).with_query(query_data)).replace("+", ""),
+            "raise_for_status": True,
+            "headers": header,
+            "data": json.dumps([query_body]),
+        }
+        if cookie:
+            kwarg["cookies"] = {"refresh_token": cookie["refresh_token"].value}
 
-        async with aiohttp_session.put(
-                url, raise_for_status=True, cookies=cookie
-        ) as response:
+        async with aiohttp_session.put(**kwarg) as response:
             return await response.json(), response.status, response.cookies
 
     return inner
