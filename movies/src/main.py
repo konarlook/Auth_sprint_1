@@ -1,17 +1,18 @@
 import logging
 
 import uvicorn
-
 from dotenv import load_dotenv
 from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
 
 from api.v1 import films, genres, persons
 from core.config import settings
 from core.logger import LOGGING
 from db import elastic, redis
+from helpers.jager import configure_tracer
 
 load_dotenv()
 
@@ -27,6 +28,11 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup():
+    configure_tracer(
+        settings.jaeger.jaeger_host,
+        settings.jaeger.jaeger_port,
+        settings.project_name,
+    )
     redis.redis = Redis(
         host=settings.redis.redis_host,
         port=settings.redis.redis_port,
@@ -42,6 +48,21 @@ async def shutdown():
     await redis.redis.close()
     await elastic.es.close()
 
+
+@app.middleware("http")
+async def before_request(request: Request, call_next):
+    response = await call_next(request)
+    request_id = request.headers.get("X-Request-Id")
+    print("request_id", request_id)
+    if not request_id:
+        return ORJSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "X-Request-Id is required"},
+        )
+    return response
+
+
+FastAPIInstrumentor.instrument_app(app)
 
 app.include_router(films.router, prefix="/api/v1")
 app.include_router(genres.router, prefix="/api/v1")

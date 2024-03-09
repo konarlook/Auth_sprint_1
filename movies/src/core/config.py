@@ -31,19 +31,19 @@ class CommonSettings(_BaseSettings):
 
 
 class AuthJWTSettings(_BaseSettings):
-    private_key: Path = Path(__file__).parent / 'certs' / 'private.pem'
-    public_key: Path = Path(__file__).parent / 'certs' / 'public.pem'
+    private_key: Path = Path(__file__).parent / "certs" / "private.pem"
+    public_key: Path = Path(__file__).parent / "certs" / "public.pem"
     auth_algorithm_password: str = Field(
-        default='RS256',
-        description='Алгоритм шифрования токена',
+        default="RS256",
+        description="Алгоритм шифрования токена",
     )
     access_token_lifetime: int = Field(
         default=3600,
-        description='Время жизни access токенов в секундах',
+        description="Время жизни access токенов в секундах",
     )
     refresh_token_lifetime: int = Field(
         default=86400,
-        description='Время жизни refresh токена в секундах',
+        description="Время жизни refresh токена в секундах",
     )
 
 
@@ -94,6 +94,15 @@ class BackendSettings(_BaseSettings):
     backend_fastapi_port: int = Field(default=8000, description="Порт сервера")
 
 
+class JaegerSettings(_BaseSettings):
+    jaeger_host: str = Field(
+        default="jaeger",
+    )
+    jaeger_port: int = Field(
+        default=6831,
+    )
+
+
 class Settings(CommonSettings):
     """Main settings class for grouping other settings."""
 
@@ -102,6 +111,7 @@ class Settings(CommonSettings):
     elastic: ElasticSettings = ElasticSettings()
     pagination: PaginationSettings = PaginationSettings()
     backend: BackendSettings = BackendSettings()
+    jaeger: JaegerSettings = JaegerSettings()
 
 
 settings = Settings()
