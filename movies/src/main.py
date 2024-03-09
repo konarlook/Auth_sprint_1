@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
 
@@ -49,9 +50,11 @@ async def shutdown():
     await elastic.es.close()
 
 
+tracer = trace.get_tracer(__name__)
+
+
 @app.middleware("http")
 async def before_request(request: Request, call_next):
-    response = await call_next(request)
     request_id = request.headers.get("X-Request-Id")
     print("request_id", request_id)
     if not request_id:
@@ -59,7 +62,10 @@ async def before_request(request: Request, call_next):
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": "X-Request-Id is required"},
         )
-    return response
+    with tracer.start_as_current_span("movies_request") as span:
+        span.set_attribute("http.request_id", request_id)
+        response = await call_next(request)
+        return response
 
 
 FastAPIInstrumentor.instrument_app(app)
