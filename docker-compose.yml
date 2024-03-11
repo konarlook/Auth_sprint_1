@@ -68,6 +68,7 @@ services:
     build: ./app
     networks:
      - network_project
+     - auth_network
     depends_on:
       - db
 
