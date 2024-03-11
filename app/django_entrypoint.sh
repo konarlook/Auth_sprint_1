@@ -8,9 +8,6 @@ cd sqlite_to_postgres/
 python load_data.py
 cd ../
 
-echo "Create superuser. "
-python manage.py createsuperuser --noinput
-
 echo "Collect static files. "
 python manage.py collectstatic --noinput
 
