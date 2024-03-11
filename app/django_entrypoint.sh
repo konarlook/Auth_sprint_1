@@ -4,10 +4,9 @@ echo "Making migrations and migrating the database. "
 python manage.py migrate
 
 echo "Run data transfer. "
-python sqlite_to_postgres/load_data.py
-
-echo "Create superuser. "
-python manage.py createsuperuser --noinput
+cd sqlite_to_postgres/
+python load_data.py
+cd ../
 
 echo "Collect static files. "
 python manage.py collectstatic --noinput

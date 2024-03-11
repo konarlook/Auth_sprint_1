@@ -23,12 +23,16 @@ include(
     r"components/middleware.py",
     r"components/templates.py",
     r"components/passwords.py",
+    r"components/auth.py",
 )
-
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", False)
 
+AUTH_API_HOST = os.environ.get("AUTH_API_HOST")
+AUTH_API_PORT = os.environ.get("AUTH_API_PORT")
+AUTH_API_LOGIN_URL = AUTH_API_HOST + ":" + AUTH_API_PORT + "/auth/login/"
+AUTH_API_VERIFY_ROLE_URL = AUTH_API_HOST + ":" + AUTH_API_PORT + "/auth/roles/verify/"
 
 # installed_apps
 if DEBUG:
@@ -43,7 +47,7 @@ if DEBUG:
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(',')
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
