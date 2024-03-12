@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from models.base import Base  # noqa
 from models.auth_orm_models import *  # noqa
+from models.oauth import *  # noqa
 
 config = context.config
 
