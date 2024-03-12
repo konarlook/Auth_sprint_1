@@ -112,6 +112,20 @@ async def login_user(
     return {"detail": "login successful"}
 
 
+@router.post(
+    path="/login/{provider}/",
+    status_code=status.HTTP_200_OK,
+    summary="Аунтификация через соц. сети",
+    description="Аунтификация по протоколу OAuth2 через социальные сети",
+)
+async def login_oauth(
+        request: Request,
+        provider: str,
+        oauth_service,
+):
+    pass
+
+
 @router.put(
     path="/change_password/",
     status_code=status.HTTP_200_OK,
