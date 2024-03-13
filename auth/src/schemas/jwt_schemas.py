@@ -1,5 +1,4 @@
-from uuid import UUID, uuid4
-from datetime import datetime
+from uuid import UUID
 from .base import BaseSchema
 
 
@@ -17,3 +16,10 @@ class AccessJWTSchema(JWTSchema):
 
 class RefreshJWTSchema(JWTSchema):
     id: str
+
+
+class ResponseTokenSchema(JWTSchema):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+

@@ -130,14 +130,21 @@ async def login_oauth(
 @router.get(
     path="/login/{provider}/callback",
     status_code=status.HTTP_200_OK,
+    response_model=jwt_schemas.ResponseTokenSchema,
 )
 async def login_oauth_callback(
         request: Request,
         provider: str,
         oauth_service: OAuthService = Depends(get_oauth_service),
-):
-    access_token, refresh_token = await oauth_service.authentificate(request, provider)
-    return access_token, refresh_token
+) -> jwt_schemas.ResponseTokenSchema:
+    access_token, refresh_token, _ = await oauth_service.authentificate(
+        request,
+        provider,
+    )
+    return jwt_schemas.ResponseTokenSchema(
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
 
 
 @router.put(
