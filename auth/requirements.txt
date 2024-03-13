@@ -18,4 +18,6 @@ passlib[bcrypt]==1.7.4
 python-jose==3.3.0
 pyjwt[crypto]==2.8.0
 
+authlib==1.3.0
+
 grpcio-tools==1.62.0rc1
