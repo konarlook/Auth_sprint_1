@@ -127,8 +127,49 @@ def upgrade() -> None:
             ["user_id"],
             ["user_data.id"],
         ),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("id", "user_id"),
+        postgresql_partition_by="HASH (user_id)",
         comment="Таблица истории авторизации",
+    )
+    op.execute(
+        "CREATE TABLE hash_part_0 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 0);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_1 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 1);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_2 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 2);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_3 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 3);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_4 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 4);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_5 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 5);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_6 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 6);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_7 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 7);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_8 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 8);"
+    )
+    op.execute(
+        "CREATE TABLE hash_part_9 PARTITION OF auth_history "
+        "FOR VALUES WITH (MODULUS 10, REMAINDER 9);"
     )
     op.create_table(
         "mix_actions",
