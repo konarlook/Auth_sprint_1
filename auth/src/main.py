@@ -5,6 +5,7 @@ import uvicorn
 from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
@@ -64,6 +65,7 @@ async def before_request(request: Request, call_next):
 
 FastAPIInstrumentor.instrument_app(app)
 
+app.add_middleware(SessionMiddleware, secret_key=settings.backend.auth_secret_key)
 app.include_router(router=users.router)
 app.include_router(router=roles.router)
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
+from fastapi.responses import RedirectResponse
 from redis.asyncio import Redis
 
 from core.config import settings
@@ -123,28 +124,69 @@ async def login_oauth(
         request: Request,
         provider: str,
         oauth_service: OAuthService = Depends(get_oauth_service),
-):
+) -> RedirectResponse:
     return await oauth_service.redirect(request, provider)
 
 
 @router.get(
     path="/login/{provider}/callback",
     status_code=status.HTTP_200_OK,
-    response_model=jwt_schemas.ResponseTokenSchema,
+    # response_model=jwt_schemas.ResponseTokenSchema,
 )
 async def login_oauth_callback(
+        code: str,
+        state: str,
         request: Request,
         provider: str,
+        user_service: AuthUserService = Depends(get_user_service),
+        history_service: HistoryService = Depends(get_history_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        redis: Redis = Depends(get_redis),
         oauth_service: OAuthService = Depends(get_oauth_service),
 ) -> jwt_schemas.ResponseTokenSchema:
-    access_token, refresh_token, _ = await oauth_service.authentificate(
-        request,
-        provider,
+    if state != request.session.get("state"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="State is incorrect",
+        )
+    request_url = request.url_for("login_oauth_callback", provider=provider)
+    user = None
+    if provider == "yandex":
+        user = await oauth_service.get_user(code, request_url)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+        )
+
+    redirect = RedirectResponse(url="/")
+    user_agent = await history_service.create(
+        user_id=user.id,
+        device_id=request.headers.get("User-Agent"),
     )
-    return jwt_schemas.ResponseTokenSchema(
-        access_token=access_token,
-        refresh_token=refresh_token,
+
+    action = await user_service.get_role(user)
+
+    tokens = await auth_service.create_tokens(
+        data=user,
+        user_agent=user_agent,
+        actions=action,
+        redis=redis,
     )
+    redirect.set_cookie(
+        key="access_token",
+        value=tokens.access_token,
+        httponly=True,
+        max_age=settings.auth_jwt.access_token_lifetime,
+    )
+    redirect.set_cookie(
+        key="refresh_token",
+        value=tokens.refresh_token,
+        httponly=True,
+        max_age=settings.auth_jwt.refresh_token_lifetime,
+    )
+    return {"detail": "login successful"}
 
 
 @router.put(

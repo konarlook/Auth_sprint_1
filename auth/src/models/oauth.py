@@ -1,11 +1,9 @@
-import uuid
-import datetime
 from enum import Enum
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UniqueConstraint, ForeignKey
 
-from .base import Base, str_50, str_256, uuidpk, datetime_at_utc
+from .base import Base, str_256, uuidpk
 
 
 class SocialNetworksNames(Enum):
