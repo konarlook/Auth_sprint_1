@@ -132,12 +132,22 @@ class BackendSettings(_BaseSettings):
     auth_admin_password: str = Field(default="admin")
 
 
+class JaegerSettings(_BaseSettings):
+    jaeger_host: str = Field(
+        default="jaeger",
+    )
+    jaeger_port: int = Field(
+        default=6831,
+    )
+
+
 class Settings(CommonSettings):
     backend: BackendSettings = BackendSettings()
     auth_jwt: AuthJWTSettings = AuthJWTSettings()
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
     pagination: PaginationSettings = PaginationSettings()
+    jaeger: JaegerSettings = JaegerSettings()
 
 
 settings = Settings()

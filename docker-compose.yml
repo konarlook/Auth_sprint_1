@@ -150,6 +150,16 @@ services:
       - nginx
       - elastic
 
+  auth_jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - '6831:6831/udp'
+      - '16686:16686'
+    networks:
+      - auth_network
+      - network_project
+
 volumes:
   db_data:
   static_data:
