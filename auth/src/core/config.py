@@ -142,9 +142,9 @@ class JaegerSettings(_BaseSettings):
 
 
 class YandexProviderSettings(_BaseSettings):
-    client_id: str
-    client_secret: str
-    redirect_uri: str
+    client_id: str = Field(default="c55ab5b5328248ef86f61d33354f6f4b")
+    client_secret: str = Field(default="a44e2c0f99ef47b388de80ac7ea7ea9d")
+    redirect_uri: str = Field(default="http://localhost/api/openapi")
     scope: str = Field(default="login:email")
     authorize_url: str = Field(default="https://oauth.yandex.ru/authorize")
     access_token_url: str = Field(default="https://oauth.yandex.ru/token")
@@ -159,7 +159,7 @@ class Settings(CommonSettings):
     pagination: PaginationSettings = PaginationSettings()
     jaeger: JaegerSettings = JaegerSettings()
 
-    #yandex: YandexProviderSettings = YandexProviderSettings()
+    yandex: YandexProviderSettings = YandexProviderSettings()
 
 
 settings = Settings()

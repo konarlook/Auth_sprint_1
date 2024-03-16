@@ -1,72 +1,71 @@
-from abc import ABC, abstractmethod
-
 from functools import lru_cache
-from authlib.integrations.starlette_client import OAuth, OAuthError
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Request, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
 
-from repositories.user_data_repository import get_database_client, UserDataRepository
+from pydantic import EmailStr
+from fastapi import HTTPException, status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
 from models.oauth import SocialNetworks
 from models.auth_orm_models import UserDataOrm
-from schemas.jwt_schemas import ResponseTokenSchema
-from .auth_service import AuthJWT, get_auth_jwt
+from schemas.users import CreateUserSchema
+from db.sqlalchemy_db import get_db_session
 from .user_service import AuthUserService, get_user_service
-from helpers.random import get_random_string
-
-
-class OAuthBaseProvider(ABC):
-    def __init__(self, client, provider):
-        self.client = client
-        self.provider = provider
-
-    @abstractmethod
-    async def received_token(self, token):
-        raise NotImplementedError
-
-    async def redirect(self, request) -> RedirectResponse:
-        redirect_uri = request.url_for('auth_callback', provider=self.provider)
-        return await self.client.authorize_redirect(redirect_uri)
-
-    async def check_access_token(self, request):
-        return await self.client.authorize_access_token(request)
-
-
-class YandexOAuthProvider(OAuthBaseProvider):
-    def __init__(self, client):
-        super().__init__(client, "yandex")
-
-    async def received_token(self, token):
-        pass
-
-
-class OAuthFactory:
-    @staticmethod
-    def create_oauth_provider(name: str, client):
-        if name == 'yandex':
-            return YandexOAuthProvider(client=client)
 
 
 class OAuthService:
-    async def redirect(self, request: Request, provider: str) -> RedirectResponse:
-        redirect_uri = request.url_for("login_oauth_callback", provider=provider)
-        state = get_random_string(16)
-        request.session["state"] = state
+    def __init__(self, database_client: AsyncSession, user_service: AuthUserService):
+        self.database_client = database_client
+        self.user_service = user_service
 
-        if provider == "yandex":
-            return RedirectResponse(
-                f"https://oauth.yandex.ru/authorize"
-                f"?response_type=code"
-                f"&client_id=c55ab5b5328248ef86f61d33354f6f4b"
-                f"&redirect_uri={redirect_uri}"
-                f"&state={state}"
+    async def get_user(
+            self, social_id:
+            str, social_name:
+            str, email: EmailStr,
+            name: str | None = None,
+            password: str | None = None,
+    ):
+        response = await self.database_client.execute(
+            select(SocialNetworks).where(
+                SocialNetworks.social_network_id == social_id,
+                SocialNetworks.social_networks_name == social_name,
             )
+        )
+        social_account = response.scalars().first()
+        if social_account:
+            response = await self.database_client.execute(
+                select(UserDataOrm).where(UserDataOrm.id == social_account.id)
+            )
+            return response.scalars().first()
+
+        response = await self.database_client.execute(
+            select(UserDataOrm).where(UserDataOrm.email == email)
+        )
+
+        user_data = response.scalars().first()
+        if not user_data:
+            if not email or password:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Email or password don`t set",
+                )
+
+            user = await self.user_service.create(
+                CreateUserSchema(email=email, user_name=name, hashed_password=password)
+            )
+
+            social_account = SocialNetworks(
+                user_id=user["id"],
+                social_id=social_id,
+                social_name=social_name,
+            )
+            self.database_client.add(social_account)
+            await self.database_client.commit()
+            return user
+
 
 @lru_cache
 def get_oauth_service(
-
+        database_client: AsyncSession = Depends(get_db_session),
+        user_service: AuthUserService = Depends(get_user_service)
 ) -> OAuthService:
-    return OAuthService(
-
-    )
+    return OAuthService(database_client=database_client, user_service=user_service)

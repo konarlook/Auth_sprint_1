@@ -1,3 +1,4 @@
+from authlib.integrations.requests_client.oauth2_session import OAuth2Session
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from redis.asyncio import Redis
@@ -6,6 +7,7 @@ from core.config import settings
 from core.constants import UserRoleEnum
 from db.redis import get_redis
 from helpers import access
+from helpers.random import get_random_string
 from schemas import histories
 from schemas import users, roles, jwt_schemas
 from schemas.base import Page
@@ -13,7 +15,7 @@ from services.auth_service import AuthJWT, get_auth_jwt
 from services.history_service import HistoryService, get_history_service
 from services.role_service import AuthRoleService, get_role_service
 from services.user_service import AuthUserService, get_user_service
-from services.oauth_service import OAuthService, get_oauth_service
+from services.social_service import YandexSocialService, get_yandex_service
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -31,27 +33,6 @@ async def create_user(
         role_service: AuthRoleService = Depends(get_role_service),
 ) -> users.UserBaseSchema:
     """User registration endpoint by required fields."""
-    if not "".join(user_dto.hashed_password.split()):
-        raise HTTPException(
-            detail="Password must be set.",
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
-
-    request_email = await user_service.get(email=user_dto.email)
-    if request_email:
-        raise HTTPException(
-            detail="User already exists",
-            status_code=status.HTTP_409_CONFLICT,
-        )
-    if user_dto.user_name:
-        request_username = await user_service.get_by_username(
-            username=user_dto.user_name
-        )
-        if request_username:
-            raise HTTPException(
-                detail="Username already exists.",
-                status_code=status.HTTP_409_CONFLICT,
-            )
 
     user_encode = await user_service.create(user_dto=user_dto)
     user = users.UserBaseSchema(email=user_encode["email"])
@@ -114,62 +95,73 @@ async def login_user(
     return {"detail": "login successful"}
 
 
-@router.post(
-    path="/login/{provider}/",
-    status_code=status.HTTP_200_OK,
+@router.get(
+    path="/login/{provider}",
     summary="Аунтификация через соц. сети",
     description="Аунтификация по протоколу OAuth2 через социальные сети",
 )
 async def login_oauth(
-        request: Request,
         provider: str,
-        oauth_service: OAuthService = Depends(get_oauth_service),
-) -> RedirectResponse:
-    return await oauth_service.redirect(request, provider)
+        request: Request,
+) :
+    redirect_uri = request.url_for("login_oauth_callback", provider=provider)
+    state = get_random_string(16)
+    request.session["state"] = state
+
+    if provider == "yandex":
+        resopnse = RedirectResponse(
+            f"https://oauth.yandex.ru/authorize"
+            f"?response_type=code"
+            f"&client_id={settings.yandex.client_id}"
+            f"&redirect_uri={redirect_uri}"
+            f"&state={state}",
+        )
+
+        return resopnse
 
 
 @router.get(
     path="/login/{provider}/callback",
-    status_code=status.HTTP_200_OK,
-    # response_model=jwt_schemas.ResponseTokenSchema,
 )
 async def login_oauth_callback(
         code: str,
         state: str,
         request: Request,
         provider: str,
+        yandex_service: YandexSocialService = Depends(get_yandex_service),
         user_service: AuthUserService = Depends(get_user_service),
         history_service: HistoryService = Depends(get_history_service),
         auth_service: AuthJWT = Depends(get_auth_jwt),
         redis: Redis = Depends(get_redis),
-        oauth_service: OAuthService = Depends(get_oauth_service),
-) -> jwt_schemas.ResponseTokenSchema:
-    if state != request.session.get("state"):
+
+) -> RedirectResponse:
+    if state != request.session["state"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="State is incorrect",
+            detail="State check is failed",
         )
-    request_url = request.url_for("login_oauth_callback", provider=provider)
+
     user = None
     if provider == "yandex":
-        user = await oauth_service.get_user(code, request_url)
+        user = await yandex_service.get_user(code)
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized",
+            detail="User not found",
         )
 
-    redirect = RedirectResponse(url="/")
+    redirect = RedirectResponse(url="http://localhost/auth/api/openapi")
+    user_dto = await user_service.get(user["email"])
     user_agent = await history_service.create(
-        user_id=user.id,
+        user_id=user_dto.id,
         device_id=request.headers.get("User-Agent"),
     )
 
-    action = await user_service.get_role(user)
+    action = await user_service.get_role(user_dto)
 
     tokens = await auth_service.create_tokens(
-        data=user,
+        data=user_dto,
         user_agent=user_agent,
         actions=action,
         redis=redis,
@@ -186,7 +178,7 @@ async def login_oauth_callback(
         httponly=True,
         max_age=settings.auth_jwt.refresh_token_lifetime,
     )
-    return {"detail": "login successful"}
+    return redirect
 
 
 @router.put(
