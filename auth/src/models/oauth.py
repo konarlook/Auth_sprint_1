@@ -1,17 +1,15 @@
-import uuid
-import datetime
 from enum import Enum
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UniqueConstraint, ForeignKey
 
-from .base import Base, str_50, str_256, uuidpk, datetime_at_utc
+from .base import Base, str_256, uuidpk, str_50
 
 
 class SocialNetworksNames(Enum):
-    YANDEX = "yandex"
-    VK = "vk"
-    GOOGLE = "google"
+    yandex = "yandex"
+    vk = "vk"
+    google = "google"
 
 
 class SocialNetworks(Base):
@@ -19,14 +17,7 @@ class SocialNetworks(Base):
         return f"<SocialAccount {self.social_networks_name}:{self.user_id}>"
 
     __tablename__ = "social_networks"
-    __table_args__ = (
-        UniqueConstraint(
-            "social_network_id",
-            "social_networks_name",
-            name="social_pk",
-        ),
-        {"comment": "Social networks table"},
-    )
+
     id: Mapped[uuidpk]
     user_id: Mapped[uuidpk] = mapped_column(
         ForeignKey(
@@ -37,7 +28,7 @@ class SocialNetworks(Base):
         comment="User id",
         nullable=False,
     )
-    social_network_id: Mapped[uuidpk] = mapped_column(
+    social_network_id: Mapped[str_50] = mapped_column(
         comment="Social network user id",
         nullable=False,
     )

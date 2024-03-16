@@ -1,10 +1,13 @@
+from authlib.integrations.requests_client.oauth2_session import OAuth2Session
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
+from fastapi.responses import RedirectResponse
 from redis.asyncio import Redis
 
 from core.config import settings
 from core.constants import UserRoleEnum
 from db.redis import get_redis
 from helpers import access
+from helpers.random import get_random_string
 from schemas import histories
 from schemas import users, roles, jwt_schemas
 from schemas.base import Page
@@ -12,6 +15,7 @@ from services.auth_service import AuthJWT, get_auth_jwt
 from services.history_service import HistoryService, get_history_service
 from services.role_service import AuthRoleService, get_role_service
 from services.user_service import AuthUserService, get_user_service
+from services.social_service import YandexSocialService, get_yandex_service
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -24,32 +28,11 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     description="Регистрация пользователя по обязательным полям",
 )
 async def create_user(
-    user_dto: users.CreateUserSchema = Depends(),
-    user_service: AuthUserService = Depends(get_user_service),
-    role_service: AuthRoleService = Depends(get_role_service),
+        user_dto: users.CreateUserSchema = Depends(),
+        user_service: AuthUserService = Depends(get_user_service),
+        role_service: AuthRoleService = Depends(get_role_service),
 ) -> users.UserBaseSchema:
     """User registration endpoint by required fields."""
-    if not "".join(user_dto.hashed_password.split()):
-        raise HTTPException(
-            detail="Password must be set.",
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
-
-    request_email = await user_service.get(email=user_dto.email)
-    if request_email:
-        raise HTTPException(
-            detail="User already exists",
-            status_code=status.HTTP_409_CONFLICT,
-        )
-    if user_dto.user_name:
-        request_username = await user_service.get_by_username(
-            username=user_dto.user_name
-        )
-        if request_username:
-            raise HTTPException(
-                detail="Username already exists.",
-                status_code=status.HTTP_409_CONFLICT,
-            )
 
     user_encode = await user_service.create(user_dto=user_dto)
     user = users.UserBaseSchema(email=user_encode["email"])
@@ -68,13 +51,13 @@ async def create_user(
     description="Регистрация пользователя по логину и паролю",
 )
 async def login_user(
-    response: Response,
-    request: Request,
-    user_dto: users.LoginUserSchema = Depends(),
-    user_service: AuthUserService = Depends(get_user_service),
-    history_service: HistoryService = Depends(get_history_service),
-    auth_service: AuthJWT = Depends(get_auth_jwt),
-    redis: Redis = Depends(get_redis),
+        response: Response,
+        request: Request,
+        user_dto: users.LoginUserSchema = Depends(),
+        user_service: AuthUserService = Depends(get_user_service),
+        history_service: HistoryService = Depends(get_history_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        redis: Redis = Depends(get_redis),
 ) -> dict:
     """User login endpoint by email and password."""
     user_dto = await user_service.check_user(user_dto)
@@ -112,6 +95,97 @@ async def login_user(
     return {"detail": "login successful"}
 
 
+@router.get(
+    path="/login/{provider}",
+    summary="Аунтификация через соц. сети",
+    description="Аунтификация по протоколу OAuth2 через социальные сети",
+)
+async def login_oauth(
+        provider: str,
+        request: Request,
+) :
+    redirect_uri = request.url_for("login_oauth_callback", provider=provider)
+    state = get_random_string(16)
+    request.session["state"] = state
+
+    if provider == "yandex":
+        resopnse = RedirectResponse(
+            f"https://oauth.yandex.ru/authorize"
+            f"?response_type=code"
+            f"&client_id={settings.yandex.client_id}"
+            f"&redirect_uri={redirect_uri}"
+            f"&state={state}",
+        )
+
+        return resopnse
+
+
+@router.get(
+    path="/login/{provider}/callback",
+)
+async def login_oauth_callback(
+        code: str,
+        state: str,
+        request: Request,
+        provider: str,
+        yandex_service: YandexSocialService = Depends(get_yandex_service),
+        user_service: AuthUserService = Depends(get_user_service),
+        history_service: HistoryService = Depends(get_history_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        redis: Redis = Depends(get_redis),
+
+) -> RedirectResponse:
+    if state != request.session["state"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="State check is failed",
+        )
+
+    user = None
+    if provider == "yandex":
+        user = await yandex_service.get_user(code)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    redirect = RedirectResponse(url="http://0.0.0.0/auth/api/openapi")
+    try:
+        user_dto = await user_service.get(email=user.email)
+    except AttributeError:
+        user_dto = await user_service.get(email=user["email"])
+
+
+    user_agent = await history_service.create(
+        user_id=user_dto.id,
+        device_id=request.headers.get("User-Agent"),
+    )
+
+    action = await user_service.get_role(user_dto)
+
+    tokens = await auth_service.create_tokens(
+        data=user_dto,
+        user_agent=user_agent,
+        actions=action,
+        redis=redis,
+    )
+    redirect.set_cookie(
+        key="access_token",
+        value=tokens.access_token,
+        httponly=True,
+        max_age=settings.auth_jwt.access_token_lifetime,
+    )
+    redirect.set_cookie(
+        key="refresh_token",
+        value=tokens.refresh_token,
+        httponly=True,
+        max_age=settings.auth_jwt.refresh_token_lifetime,
+    )
+    return redirect
+
+
 @router.put(
     path="/change_password/",
     status_code=status.HTTP_200_OK,
@@ -120,10 +194,10 @@ async def login_user(
 )
 @access.check_access_token
 async def change_password(
-    access_token: str | None = Cookie(None),
-    user_service: AuthUserService = Depends(get_user_service),
-    auth_service: AuthJWT = Depends(get_auth_jwt),
-    password_data: users.ChangePasswordSchema = Depends(),
+        access_token: str | None = Cookie(None),
+        user_service: AuthUserService = Depends(get_user_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        password_data: users.ChangePasswordSchema = Depends(),
 ) -> dict:
     """Change password by access token."""
     user_info = await auth_service.decode_jwt(access_token)
@@ -137,16 +211,16 @@ async def change_password(
     description="Получение новых access token и refresh token",
 )
 async def refresh(
-    response: Response,
-    refresh_token: str = Cookie(None),
-    user_service: AuthUserService = Depends(get_user_service),
-    auth_service: AuthJWT = Depends(get_auth_jwt),
-    redis: Redis = Depends(get_redis),
+        response: Response,
+        refresh_token: str = Cookie(None),
+        user_service: AuthUserService = Depends(get_user_service),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        redis: Redis = Depends(get_redis),
 ) -> dict:
     """Get new access and refresh tokens."""
     if not await auth_service.check_refresh_token(
-        refresh_token,
-        redis,
+            refresh_token,
+            redis,
     ):
         raise HTTPException(
             detail="Incorrect token.",
@@ -186,11 +260,11 @@ async def refresh(
     description="Выход из профиля по refresh token",
 )
 async def logout(
-    response: Response,
-    refresh_token: str | None = Cookie(None),
-    auth_service: AuthJWT = Depends(get_auth_jwt),
-    history_service: HistoryService = Depends(get_history_service),
-    redis: Redis = Depends(get_redis),
+        response: Response,
+        refresh_token: str | None = Cookie(None),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        history_service: HistoryService = Depends(get_history_service),
+        redis: Redis = Depends(get_redis),
 ) -> dict:
     """Logout endpoint by access token."""
     user_info = await auth_service.decode_jwt(refresh_token)
@@ -214,10 +288,10 @@ async def logout(
 )
 @access.check_access_token
 async def history(
-    access_token: str = Cookie(None),
-    auth_service: AuthJWT = Depends(get_auth_jwt),
-    history_service: HistoryService = Depends(get_history_service),
-    history_data: histories.HistoryRequestSchema = Depends(),
+        access_token: str = Cookie(None),
+        auth_service: AuthJWT = Depends(get_auth_jwt),
+        history_service: HistoryService = Depends(get_history_service),
+        history_data: histories.HistoryRequestSchema = Depends(),
 ) -> list[histories.FullHistorySchema]:
     """Get user history by access token."""
     user_info = await auth_service.decode_jwt(access_token)

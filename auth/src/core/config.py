@@ -3,7 +3,7 @@ from pathlib import Path
 from logging import config as logging_config
 from dotenv import find_dotenv, load_dotenv
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import LOGGING
 
@@ -132,12 +132,34 @@ class BackendSettings(_BaseSettings):
     auth_admin_password: str = Field(default="admin")
 
 
+class JaegerSettings(_BaseSettings):
+    jaeger_host: str = Field(
+        default="jaeger",
+    )
+    jaeger_port: int = Field(
+        default=6831,
+    )
+
+
+class YandexProviderSettings(_BaseSettings):
+    client_id: str = Field(default="c55ab5b5328248ef86f61d33354f6f4b")
+    client_secret: str = Field(default="a44e2c0f99ef47b388de80ac7ea7ea9d")
+    redirect_uri: str = Field(default="http://0.0.0.0/api/openapi")
+    scope: str = Field(default="login:email")
+    authorize_url: str = Field(default="https://oauth.yandex.ru/authorize")
+    access_token_url: str = Field(default="https://oauth.yandex.ru/token")
+    api_base_url: str = Field(default="https://login.yandex.ru/")
+
+
 class Settings(CommonSettings):
     backend: BackendSettings = BackendSettings()
     auth_jwt: AuthJWTSettings = AuthJWTSettings()
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
     pagination: PaginationSettings = PaginationSettings()
+    jaeger: JaegerSettings = JaegerSettings()
+
+    yandex: YandexProviderSettings = YandexProviderSettings()
 
 
 settings = Settings()

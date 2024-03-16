@@ -21,6 +21,29 @@ class AuthUserService(BaseService):
 
     async def create(self, user_dto) -> dict:
         """Create a new user by requesting email and password."""
+
+        if not "".join(user_dto.hashed_password.split()):
+            raise HTTPException(
+                detail="Password must be set.",
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            )
+
+        request_email = await self.get(email=user_dto.email)
+        if request_email:
+            raise HTTPException(
+                detail="User already exists",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+        if user_dto.user_name:
+            request_username = await self.get_by_username(
+                username=user_dto.user_name
+            )
+            if request_username:
+                raise HTTPException(
+                    detail="Username already exists.",
+                    status_code=status.HTTP_409_CONFLICT,
+                )
+
         user_dto.hashed_password = get_password_hash(user_dto.hashed_password)
         encoded_user = await self.database_client.create_user(user_data=user_dto)
         return encoded_user
