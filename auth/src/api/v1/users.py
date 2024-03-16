@@ -151,8 +151,13 @@ async def login_oauth_callback(
             detail="User not found",
         )
 
-    redirect = RedirectResponse(url="http://localhost/auth/api/openapi")
-    user_dto = await user_service.get(email=user.email)
+    redirect = RedirectResponse(url="http://0.0.0.0/auth/api/openapi")
+    try:
+        user_dto = await user_service.get(email=user.email)
+    except AttributeError:
+        user_dto = await user_service.get(email=user["email"])
+
+
     user_agent = await history_service.create(
         user_id=user_dto.id,
         device_id=request.headers.get("User-Agent"),
