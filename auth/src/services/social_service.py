@@ -60,6 +60,7 @@ class YandexSocialService(BaseSocialService):
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="User information not available",
                 )
+            user_data = user_info.json()
 
         except HTTPError:
             raise HTTPException(
@@ -67,10 +68,17 @@ class YandexSocialService(BaseSocialService):
                 detail="Social service is not available",
             )
 
+        return await self.oauth_service[0].get_user(
+            social_id=user_data.get("psuid"),
+            social_name="yandex",
+            email=user_data.get("default_email"),
+            name=user_data.get("real_name", "")
+        )
+
 
 @lru_cache
 def get_yandex_service(
         oauth_service: OAuthService = Depends(get_oauth_service),
         http_client: AsyncHTTPClient = Depends(get_async_http_client),
 ) -> YandexSocialService:
-    return YandexSocialService(oauth_service, http_client)
+    return YandexSocialService(oauth_service=oauth_service, http_client=http_client)

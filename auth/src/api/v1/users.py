@@ -152,7 +152,7 @@ async def login_oauth_callback(
         )
 
     redirect = RedirectResponse(url="http://localhost/auth/api/openapi")
-    user_dto = await user_service.get(user["email"])
+    user_dto = await user_service.get(email=user["email"])
     user_agent = await history_service.create(
         user_id=user_dto.id,
         device_id=request.headers.get("User-Agent"),

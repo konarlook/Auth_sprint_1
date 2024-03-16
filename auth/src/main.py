@@ -53,6 +53,7 @@ app = FastAPI(
 
 )
 
+
 """@app.middleware("http")
 async def before_request(request: Request, call_next):
     request_id = request.headers.get("X-Request-Id")
@@ -66,6 +67,7 @@ async def before_request(request: Request, call_next):
         span.set_attribute("http.request_id", request_id)
         response = await call_next(request)
         return response"""
+
 
 FastAPIInstrumentor.instrument_app(app)
 
@@ -90,7 +92,7 @@ app.include_router(router=roles.router)
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app",
-        host="0.0.0.0",  # settings.backend.auth_backend_host,
+        host="0.0.0.0", #settings.backend.auth_backend_host,
         port=settings.backend.auth_backend_port,
         reload=True,
         log_config=LOGGING,

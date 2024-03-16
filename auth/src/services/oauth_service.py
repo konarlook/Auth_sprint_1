@@ -9,6 +9,7 @@ from models.oauth import SocialNetworks
 from models.auth_orm_models import UserDataOrm
 from schemas.users import CreateUserSchema
 from db.sqlalchemy_db import get_db_session
+from helpers.random import get_random_string
 from .user_service import AuthUserService, get_user_service
 
 
@@ -18,11 +19,11 @@ class OAuthService:
         self.user_service = user_service
 
     async def get_user(
-            self, social_id:
-            str, social_name:
-            str, email: EmailStr,
+            self,
+            social_id: str,
+            social_name: str,
+            email: EmailStr,
             name: str | None = None,
-            password: str | None = None,
     ):
         response = await self.database_client.execute(
             select(SocialNetworks).where(
@@ -43,20 +44,25 @@ class OAuthService:
 
         user_data = response.scalars().first()
         if not user_data:
-            if not email or password:
+            if not email:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                     detail="Email or password don`t set",
                 )
 
             user = await self.user_service.create(
-                CreateUserSchema(email=email, user_name=name, hashed_password=password)
+                CreateUserSchema(
+                    email=email,
+                    user_name=name,
+                    hashed_password=get_random_string(50),
+                )
             )
 
             social_account = SocialNetworks(
                 user_id=user["id"],
-                social_id=social_id,
-                social_name=social_name,
+                social_network_id=social_id,
+                social_networks_name=social_name,
+                social_network_email=email
             )
             self.database_client.add(social_account)
             await self.database_client.commit()
@@ -68,4 +74,5 @@ def get_oauth_service(
         database_client: AsyncSession = Depends(get_db_session),
         user_service: AuthUserService = Depends(get_user_service)
 ) -> OAuthService:
-    return OAuthService(database_client=database_client, user_service=user_service)
+    service = OAuthService(database_client=database_client, user_service=user_service)
+    return service
