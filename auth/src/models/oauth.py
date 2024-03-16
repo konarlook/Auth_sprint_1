@@ -7,9 +7,9 @@ from .base import Base, str_256, uuidpk, str_50
 
 
 class SocialNetworksNames(Enum):
-    YANDEX = "yandex"
-    VK = "vk"
-    GOOGLE = "google"
+    yandex = "yandex"
+    vk = "vk"
+    google = "google"
 
 
 class SocialNetworks(Base):

@@ -34,9 +34,10 @@ class OAuthService:
         social_account = response.scalars().first()
         if social_account:
             response = await self.database_client.execute(
-                select(UserDataOrm).where(UserDataOrm.id == social_account.id)
+                select(UserDataOrm).where(UserDataOrm.id == social_account.user_id)
             )
-            return response.scalars().first()
+            response = response.scalars().first()
+            return response
 
         response = await self.database_client.execute(
             select(UserDataOrm).where(UserDataOrm.email == email)
