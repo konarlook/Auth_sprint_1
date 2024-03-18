@@ -195,7 +195,7 @@ async def login_oauth_callback(
     description="Изменить пароль по access token",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def change_password(
     access_token: str | None = Cookie(None),
     user_service: AuthUserService = Depends(get_user_service),
@@ -292,7 +292,7 @@ async def logout(
     description="Получение истории пользователя по access token",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def history(
     access_token: str = Cookie(None),
     auth_service: AuthJWT = Depends(get_auth_jwt),

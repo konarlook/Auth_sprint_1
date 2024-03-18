@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     summary="Создать роль",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def create_role(
     access_token: str | None = Cookie(None),
     role_dto: roles.RoleActionDto = Depends(),
@@ -34,7 +34,7 @@ async def create_role(
     summary="Получить существующие роли",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def get_roles(
     access_token: str | None = Cookie(None),
     role_service: AuthRoleService = Depends(get_role_service),
@@ -50,7 +50,7 @@ async def get_roles(
     summary="Изменить существующую роль",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def change_role(
     access_token: str | None = Cookie(None),
     role_dto: roles.RoleActionDto = Depends(),
@@ -66,7 +66,7 @@ async def change_role(
     description="Изменить название, комментарий и разрешенные действия у существующей роли",
     summary="Изменить существующую роль",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def delete_role(
     access_token: str | None = Cookie(None),
     name: str = Path(max_length=50, title="Имя роли"),
@@ -82,7 +82,7 @@ async def delete_role(
     description="Назначить роль пользователю",
     summary="Назначить роль пользователю",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def set_role(
     access_token: str | None = Cookie(None),
     user_dto: roles.UserRoleDto = Depends(),
@@ -98,7 +98,7 @@ async def set_role(
     description="Верифицировать роль пользователя",
     summary="Верифицировать роль пользователя",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def verify_role(
     access_token: str | None = Cookie(None),
     user_dto: roles.UserRoleDto = Depends(),
