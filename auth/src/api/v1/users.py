@@ -1,13 +1,14 @@
-from core.config import settings
-from core.constants import UserRoleEnum
-from db.redis import get_redis
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi_limiter.depends import RateLimiter
+from redis.asyncio import Redis
+
+from core.config import settings
+from core.constants import UserRoleEnum
+from db.redis import get_redis
 from helpers import access
 from helpers.providers import Providers
 from helpers.random import get_random_string
-from redis.asyncio import Redis
 from schemas import histories
 from schemas import users, roles, jwt_schemas
 from schemas.base import Page
