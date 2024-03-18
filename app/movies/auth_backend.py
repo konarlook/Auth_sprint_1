@@ -15,7 +15,12 @@ class CustomBackend(BaseBackend):
         # TODO: add for jaeger headers = {'X-Request-Id': str(uuid.uuid4())}
         # TODO: add secure data in `-d`
         url = str(URL(settings.AUTH_API_LOGIN_URL).with_query(payload))
-        response = requests.post(url)
+        # TODO: Подумать над graceful degradationq
+        try:
+            response = requests.post(url)
+        except Exception:  # TODO: Лучше вылавливать конкретные ошибки
+            return None
+
         if response.status_code != http.HTTPStatus.OK:
             return None
 
