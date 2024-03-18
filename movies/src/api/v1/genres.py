@@ -2,11 +2,10 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-
-from services.genre import GenreService, get_genre_service
+from fastapi_limiter.depends import RateLimiter
 from models.models import Genre, Page
 from models.request_models import BaseModelPaginationFilter
-
+from services.genre import GenreService, get_genre_service
 
 router = APIRouter()
 
@@ -18,6 +17,7 @@ router = APIRouter()
     description="Информация о жанрах",
     response_description="Список жанров",
     tags=["Главная страница"],
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def genres_list(
     query_params: BaseModelPaginationFilter = Depends(),
@@ -39,6 +39,7 @@ async def genres_list(
     description="Информация о жанре",
     response_description="Жанр",
     tags=["Страница жанра"],
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def get_genre_bu_id(
     genre_id: UUID,
