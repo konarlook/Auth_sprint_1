@@ -140,7 +140,7 @@ class JaegerSettings(_BaseSettings):
     jaeger_port: int = Field(
         default=6831,
     )
-    enable_tracer = Field(default=True)
+    enable_tracer: bool = Field(default=True)
 
 
 class YandexProviderSettings(_BaseSettings):
