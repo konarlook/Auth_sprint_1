@@ -6,16 +6,19 @@ from fastapi import status, HTTPException, Depends
 
 from core.config import settings
 from deps.http import get_async_http_client
+from helpers.providers import Providers
 from .oauth_service import OAuthService, get_oauth_service
 
 
 class BaseSocialService(ABC):
-    def __init__(self,
-                 social_name: str,
-                 oauth_service: OAuthService,
-                 http_client: AsyncHTTPClient):
+    def __init__(
+        self,
+        social_name: str,
+        oauth_service: OAuthService,
+        http_client: AsyncHTTPClient,
+    ):
         self.social_name = social_name
-        self.oauth_service = oauth_service,
+        self.oauth_service = (oauth_service,)
         self.http_client = http_client
 
     @abstractmethod
@@ -26,9 +29,7 @@ class BaseSocialService(ABC):
 class YandexSocialService(BaseSocialService):
     def __init__(self, oauth_service: OAuthService, http_client: AsyncHTTPClient):
         super().__init__(
-            "yandex",
-            oauth_service=oauth_service,
-            http_client=http_client
+            Providers.YANDEX.value, oauth_service=oauth_service, http_client=http_client
         )
 
     async def get_user(self, code):
@@ -70,15 +71,15 @@ class YandexSocialService(BaseSocialService):
 
         return await self.oauth_service[0].get_user(
             social_id=user_data.get("psuid"),
-            social_name="yandex",
+            social_name=Providers.YANDEX.value,
             email=user_data.get("default_email"),
-            name=user_data.get("real_name", "")
+            name=user_data.get("real_name", ""),
         )
 
 
 @lru_cache
 def get_yandex_service(
-        oauth_service: OAuthService = Depends(get_oauth_service),
-        http_client: AsyncHTTPClient = Depends(get_async_http_client),
+    oauth_service: OAuthService = Depends(get_oauth_service),
+    http_client: AsyncHTTPClient = Depends(get_async_http_client),
 ) -> YandexSocialService:
     return YandexSocialService(oauth_service=oauth_service, http_client=http_client)

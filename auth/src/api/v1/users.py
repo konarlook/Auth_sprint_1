@@ -7,6 +7,7 @@ from core.config import settings
 from core.constants import UserRoleEnum
 from db.redis import get_redis
 from helpers import access
+from helpers.providers import Providers
 from helpers.random import get_random_string
 from schemas import histories
 from schemas import users, roles, jwt_schemas
@@ -104,14 +105,14 @@ async def login_user(
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def login_oauth(
-    provider: str,
+    provider: Providers,
     request: Request,
 ):
-    redirect_uri = request.url_for("login_oauth_callback", provider=provider)
+    redirect_uri = request.url_for("login_oauth_callback", provider=provider.value)
     state = get_random_string(16)
     request.session["state"] = state
 
-    if provider == "yandex":
+    if provider == Providers.YANDEX:
         resopnse = RedirectResponse(
             f"https://oauth.yandex.ru/authorize"
             f"?response_type=code"
@@ -131,7 +132,7 @@ async def login_oauth_callback(
     code: str,
     state: str,
     request: Request,
-    provider: str,
+    provider: Providers,
     yandex_service: YandexSocialService = Depends(get_yandex_service),
     user_service: AuthUserService = Depends(get_user_service),
     history_service: HistoryService = Depends(get_history_service),
@@ -145,7 +146,7 @@ async def login_oauth_callback(
         )
 
     user = None
-    if provider == "yandex":
+    if provider == Providers.YANDEX:
         user = await yandex_service.get_user(code)
 
     if not user:
