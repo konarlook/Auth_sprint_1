@@ -1,7 +1,7 @@
 from enum import Enum
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import UniqueConstraint, ForeignKey
 
 from .base import Base, str_256, uuidpk, str_50
 

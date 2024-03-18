@@ -4,19 +4,18 @@ from contextlib import asynccontextmanager
 import uvicorn
 from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI, status, Request
-from fastapi.responses import ORJSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import ORJSONResponse
+from httpx import AsyncClient as HttpAsyncClient
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
-from httpx import AsyncClient as HttpAsyncClient
+from starlette.middleware.sessions import SessionMiddleware
 
 from api.v1 import users, roles
 from core.config import settings
 from core.logger import LOGGING
 from helpers.jager import configure_tracer
-from deps.http import client as http_client
 
 load_dotenv(find_dotenv())
 
@@ -51,7 +50,6 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
     version="1.0.0",
     lifespan=lifespan,
-
 )
 
 
