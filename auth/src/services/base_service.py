@@ -17,4 +17,3 @@ class BaseService(ABC):
     @abstractmethod
     async def delete(self, *args, **kwargs):
         raise NotImplementedError
-
