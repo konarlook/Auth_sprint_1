@@ -1,9 +1,10 @@
 import os
-from pathlib import Path
 from logging import config as logging_config
+from pathlib import Path
+
 from dotenv import find_dotenv, load_dotenv
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 from .logger import LOGGING
 
@@ -139,6 +140,7 @@ class JaegerSettings(_BaseSettings):
     jaeger_port: int = Field(
         default=6831,
     )
+    enable_tracer = Field(default=True)
 
 
 class YandexProviderSettings(_BaseSettings):

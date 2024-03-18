@@ -4,19 +4,18 @@ from contextlib import asynccontextmanager
 import uvicorn
 from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI, status, Request
-from fastapi.responses import ORJSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import ORJSONResponse
+from httpx import AsyncClient as HttpAsyncClient
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
-from httpx import AsyncClient as HttpAsyncClient
+from starlette.middleware.sessions import SessionMiddleware
 
 from api.v1 import users, roles
 from core.config import settings
 from core.logger import LOGGING
 from helpers.jager import configure_tracer
-from deps.http import client as http_client
 
 load_dotenv(find_dotenv())
 
@@ -24,11 +23,12 @@ load_dotenv(find_dotenv())
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """Lifespan for startup and shutdown Redis"""
-    configure_tracer(
-        settings.jaeger.jaeger_host,
-        settings.jaeger.jaeger_port,
-        settings.service_name,
-    )
+    if settings.jaeger.enable_tracer:
+        configure_tracer(
+            settings.jaeger.jaeger_host,
+            settings.jaeger.jaeger_port,
+            settings.service_name,
+        )
     http_client = HttpAsyncClient()
     _redis = Redis(
         host=settings.redis.auth_redis_host,
@@ -50,14 +50,12 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
     version="1.0.0",
     lifespan=lifespan,
-
 )
 
 
 @app.middleware("http")
 async def before_request(request: Request, call_next):
     request_id = request.headers.get("X-Request-Id")
-    print("request_id", request_id)
     if not request_id:
         return ORJSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -72,12 +70,6 @@ async def before_request(request: Request, call_next):
 FastAPIInstrumentor.instrument_app(app)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.backend.auth_secret_key)
-
-origins = [
-    "http://localhost",
-    "https://oauth.yandex.ru",
-    "https://oauth.yandex.ru/authorize",
-]
 
 app.add_middleware(
     CORSMiddleware,
