@@ -14,11 +14,11 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     description="Создать роль на основании имеющихся возможных действий",
     summary="Создать роль",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def create_role(
-        access_token: str | None = Cookie(None),
-        role_dto: roles.RoleActionDto = Depends(),
-        role_service: AuthRoleService = Depends(get_role_service),
+    access_token: str | None = Cookie(None),
+    role_dto: roles.RoleActionDto = Depends(),
+    role_service: AuthRoleService = Depends(get_role_service),
 ):
     response = await role_service.create(role_dto)
     return response
@@ -31,10 +31,10 @@ async def create_role(
     description="Получить существующие роли с детализацией по разрешенным действиям",
     summary="Получить существующие роли",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def get_roles(
-        access_token: str | None = Cookie(None),
-        role_service: AuthRoleService = Depends(get_role_service),
+    access_token: str | None = Cookie(None),
+    role_service: AuthRoleService = Depends(get_role_service),
 ) -> list[roles.RoleActionSchema]:
     response = await role_service.get()
     return response
@@ -46,11 +46,11 @@ async def get_roles(
     description="Изменить название, комментарий и разрешенные действия у существующей роли",
     summary="Изменить существующую роль",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def change_role(
-        access_token: str | None = Cookie(None),
-        role_dto: roles.RoleActionDto = Depends(),
-        role_service: AuthRoleService = Depends(get_role_service),
+    access_token: str | None = Cookie(None),
+    role_dto: roles.RoleActionDto = Depends(),
+    role_service: AuthRoleService = Depends(get_role_service),
 ):
     response = await role_service.update(role_dto)
     return response
@@ -62,11 +62,11 @@ async def change_role(
     description="Изменить название, комментарий и разрешенные действия у существующей роли",
     summary="Изменить существующую роль",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def delete_role(
-        access_token: str | None = Cookie(None),
-        name: str = Path(max_length=50, title="Имя роли"),
-        role_service: AuthRoleService = Depends(get_role_service),
+    access_token: str | None = Cookie(None),
+    name: str = Path(max_length=50, title="Имя роли"),
+    role_service: AuthRoleService = Depends(get_role_service),
 ) -> Response:
     await role_service.delete(name=name)
     return Response(status_code=status.HTTP_200_OK)
@@ -78,11 +78,11 @@ async def delete_role(
     description="Назначить роль пользователю",
     summary="Назначить роль пользователю",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def set_role(
-        access_token: str | None = Cookie(None),
-        user_dto: roles.UserRoleDto = Depends(),
-        role_service: AuthRoleService = Depends(get_role_service),
+    access_token: str | None = Cookie(None),
+    user_dto: roles.UserRoleDto = Depends(),
+    role_service: AuthRoleService = Depends(get_role_service),
 ):
     await role_service.set_role(user_role=user_dto)
     return Response(status_code=status.HTTP_201_CREATED)
@@ -94,11 +94,11 @@ async def set_role(
     description="Верифицировать роль пользователя",
     summary="Верифицировать роль пользователя",
 )
-@access.check_access_token
+@access.check_access_token  # Декоратор для проверки прав пользователя
 async def verify_role(
-        access_token: str | None = Cookie(None),
-        user_dto: roles.UserRoleDto = Depends(),
-        role_service: AuthRoleService = Depends(get_role_service),
+    access_token: str | None = Cookie(None),
+    user_dto: roles.UserRoleDto = Depends(),
+    role_service: AuthRoleService = Depends(get_role_service),
 ) -> Response:
     response = await role_service.verify(user_role=user_dto)
     if not response:
