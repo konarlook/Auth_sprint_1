@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from fastapi_limiter import FastAPILimiter
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
@@ -42,12 +43,14 @@ async def startup():
     elastic.es = AsyncElasticsearch(
         hosts=[f"{settings.elastic.elastic_host}:{settings.elastic.elastic_port}"]
     )
+    await FastAPILimiter.init(redis.redis)
 
 
 @app.on_event("shutdown")
 async def shutdown():
     await redis.redis.close()
     await elastic.es.close()
+    await FastAPILimiter.close()
 
 
 tracer = trace.get_tracer(__name__)

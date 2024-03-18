@@ -6,6 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+from fastapi_limiter import FastAPILimiter
 from httpx import AsyncClient as HttpAsyncClient
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -35,8 +36,10 @@ async def lifespan(application: FastAPI):
         port=settings.redis.auth_redis_port,
         db=settings.redis.auth_redis_database,
     )
+    await FastAPILimiter.init(_redis)
     yield
     await _redis.close()
+    await FastAPILimiter.close()
     await http_client.aclose()
 
 

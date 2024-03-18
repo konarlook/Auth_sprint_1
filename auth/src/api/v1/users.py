@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status, Response, Cookie, Request, HTTPException
 from fastapi.responses import RedirectResponse
+from fastapi_limiter.depends import RateLimiter
 from redis.asyncio import Redis
 
 from core.config import settings
@@ -25,6 +26,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     status_code=status.HTTP_201_CREATED,
     summary="Регистрация пользователя",
     description="Регистрация пользователя по обязательным полям",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def create_user(
     user_dto: users.CreateUserSchema = Depends(),
@@ -48,6 +50,7 @@ async def create_user(
     status_code=status.HTTP_200_OK,
     summary="Авторизация пользователя",
     description="Регистрация пользователя по логину и паролю",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def login_user(
     response: Response,
@@ -98,6 +101,7 @@ async def login_user(
     path="/login/{provider}",
     summary="Аунтификация через соц. сети",
     description="Аунтификация по протоколу OAuth2 через социальные сети",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def login_oauth(
     provider: str,
@@ -121,6 +125,7 @@ async def login_oauth(
 
 @router.get(
     path="/login/{provider}/callback",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def login_oauth_callback(
     code: str,
@@ -188,6 +193,7 @@ async def login_oauth_callback(
     status_code=status.HTTP_200_OK,
     summary="Изменение пароля",
     description="Изменить пароль по access token",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 @access.check_access_token
 async def change_password(
@@ -206,6 +212,7 @@ async def change_password(
     path="/refresh/",
     summary="Обновления refresh token",
     description="Получение новых access token и refresh token",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def refresh(
     response: Response,
@@ -255,6 +262,7 @@ async def refresh(
     path="/logout/",
     summary="Выход из профиля",
     description="Выход из профиля по refresh token",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def logout(
     response: Response,
@@ -282,6 +290,7 @@ async def logout(
     response_model=Page[histories.FullHistorySchema],
     summary="Получение пользовательской истории",
     description="Получение истории пользователя по access token",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 @access.check_access_token
 async def history(
