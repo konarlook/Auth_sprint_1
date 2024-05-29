@@ -304,3 +304,18 @@ async def history(
     user_info = await auth_service.decode_jwt(access_token)
     list_history = await history_service.get(user_info["sub"], history_data)
     return list_history
+
+
+@router.get(
+    path="/get_user_id",
+    response_model=users.FullUserSchema,
+    summary="Получить Id пользователя по email",
+    description="Получить Id пользователя по email",
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
+)
+async def get_id_by_email(
+    user_email: users.UserBaseSchema = Depends(),
+    user_service: AuthUserService = Depends(get_user_service),
+):
+    user_id = await user_service.get(email=user_email.email)
+    return user_id
